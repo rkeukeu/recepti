@@ -1,0 +1,47 @@
+<div class="register-container">
+  <div class="register-card">
+    <h3>Kreiraj nalog</h3>
+
+    <div class="form-row">
+      <input type="text" [(ngModel)]="korisnik.ime" placeholder="Ime" />
+      <input type="text" [(ngModel)]="korisnik.prezime" placeholder="Prezime" />
+    </div>
+
+    <input
+      type="email"
+      [(ngModel)]="korisnik.email"
+      placeholder="Email adresa"
+    />
+    <input
+      type="password"
+      [(ngModel)]="korisnik.lozinka"
+      placeholder="Lozinka"
+    />
+
+    <div class="form-group">
+      <label>Datum rođenja:</label>
+      <input type="date" [(ngModel)]="korisnik.datum_rodjenja" />
+    </div>
+
+    <div class="form-group">
+      <label>Pol:</label>
+      <select [(ngModel)]="korisnik.pol">
+        <option value="Muški">Muški</option>
+        <option value="Ženski">Ženski</option>
+      </select>
+    </div>
+
+    <input type="text" [(ngModel)]="korisnik.drzava" placeholder="Država" />
+
+    <div class="form-row">
+      <input type="text" [(ngModel)]="korisnik.ulica" placeholder="Ulica" />
+      <input type="text" [(ngModel)]="korisnik.broj" placeholder="Broj" />
+    </div>
+
+    <button (click)="submit()" class="register-btn">Registruj se</button>
+
+    <p class="text-center mt-3">
+      Već imate nalog? <a routerLink="/login">Prijavite se</a>
+    </p>
+  </div>
+</div>

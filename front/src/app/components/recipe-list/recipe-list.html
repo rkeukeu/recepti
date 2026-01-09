@@ -1,0 +1,49 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>🍳 Svi Recepti</h2>
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="pojamPretrage"
+        (input)="ucitajRecepte()"
+        placeholder="Pretraži recepte..."
+      />
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 mb-4" *ngFor="let r of recepti">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ r.naslov }}</h5>
+          <p class="card-text text-muted">
+            <i class="bi bi-clock"></i> {{ r.vreme }} min |
+            <i class="bi bi-person"></i> {{ r.autor }}
+          </p>
+          <div class="badge bg-info mb-3">{{ r.tezina || 'Srednje' }}</div>
+        </div>
+        <div
+          class="card-footer bg-transparent border-top-0 d-flex justify-content-between"
+        >
+          <button
+            [routerLink]="['/recepti', r.id]"
+            class="btn btn-outline-primary btn-sm"
+          >
+            Pogledaj
+          </button>
+          <button
+            *ngIf="auth.uloga === 'administrator'"
+            (click)="obrisi(r.id); $event.stopPropagation()"
+            class="btn btn-outline-danger btn-sm"
+          >
+            Obriši
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="recepti.length === 0" class="text-center mt-5">
+    <p class="lead">Nema pronađenih recepata. 😕</p>
+  </div>
+</div>

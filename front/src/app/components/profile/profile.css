@@ -1,0 +1,24 @@
+.custom-input {
+  background-color: #4b5563 !important; /* Svetlija siva od pozadine kartice */
+  color: white !important;
+  border: 1px solid #6b7280 !important;
+}
+
+.custom-input:focus {
+  background-color: #374151 !important;
+  border-color: #ff7675 !important;
+  box-shadow: 0 0 0 0.25rem rgba(255, 118, 117, 0.25);
+  color: white !important;
+}
+
+/* Stil za readonly email polje */
+input[readonly] {
+  opacity: 0.8;
+  cursor: not-allowed;
+  background-color: #1a1a1a !important;
+}
+
+/* Prilagođavanje kalendara (date input) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1); /* Čini ikonicu kalendara belom */
+}

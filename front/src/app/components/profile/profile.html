@@ -1,0 +1,124 @@
+<div class="container mt-5 mb-5">
+  <div
+    class="card bg-dark text-white shadow-lg p-4 mx-auto"
+    style="max-width: 650px; border-radius: 15px; border: 1px solid #444"
+  >
+    <h2 class="text-center mb-4" style="color: #ff7675; font-weight: bold">
+      Moj Profil
+    </h2>
+
+    <div class="text-center mb-4">
+      <img
+        [src]="user.slika_profila ? user.slika_profila : 'https://ui-avatars.com/api/?name=' + user.ime + '+' + user.prezime + '&background=ff7675&color=fff&size=128'"
+        class="rounded-circle border border-3 border-danger shadow"
+        style="width: 130px; height: 130px; object-fit: cover"
+      />
+      <div class="mt-2">
+        <span class="badge" style="background-color: #ff7675"
+          >Uloga: {{ user.uloga }}</span
+        >
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label text-secondary small fw-bold">Ime</label>
+        <input
+          type="text"
+          class="form-control custom-input"
+          [(ngModel)]="user.ime"
+        />
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label text-secondary small fw-bold">Prezime</label>
+        <input
+          type="text"
+          class="form-control custom-input"
+          [(ngModel)]="user.prezime"
+        />
+      </div>
+
+      <div class="col-12 mb-3">
+        <label class="form-label text-secondary small fw-bold"
+          >Email (nije moguće menjati)</label
+        >
+        <input
+          type="text"
+          class="form-control bg-black text-info border-secondary"
+          [value]="user.email"
+          readonly
+        />
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label text-secondary small fw-bold">Pol</label>
+        <select class="form-select custom-input" [(ngModel)]="user.pol">
+          <option value="Muški">Muški</option>
+          <option value="Ženski">Ženski</option>
+          <option value="Drugo">Drugo</option>
+        </select>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label text-secondary small fw-bold"
+          >Datum rođenja</label
+        >
+        <input
+          type="date"
+          class="form-control custom-input"
+          [(ngModel)]="user.datum_rodjenja"
+        />
+      </div>
+
+      <div class="col-md-9 mb-3">
+        <label class="form-label text-secondary small fw-bold">Ulica</label>
+        <input
+          type="text"
+          class="form-control custom-input"
+          [(ngModel)]="user.ulica"
+        />
+      </div>
+      <div class="col-md-3 mb-3">
+        <label class="form-label text-secondary small fw-bold">Broj</label>
+        <input
+          type="text"
+          class="form-control custom-input"
+          [(ngModel)]="user.broj"
+        />
+      </div>
+
+      <div class="col-12 mb-3">
+        <label class="form-label text-secondary small fw-bold">Država</label>
+        <input
+          type="text"
+          class="form-control custom-input"
+          [(ngModel)]="user.drzava"
+        />
+      </div>
+
+      <div class="col-12 mb-4">
+        <label class="form-label text-secondary small fw-bold"
+          >Link do profilne slike</label
+        >
+        <input
+          type="text"
+          class="form-control custom-input"
+          [(ngModel)]="user.slika_profila"
+          placeholder="https://putanja-do-slike.jpg"
+        />
+      </div>
+    </div>
+
+    <button
+      (click)="sacuvaj()"
+      class="btn w-100 fw-bold shadow-sm"
+      style="
+        background-color: #ff7675;
+        color: white;
+        padding: 12px;
+        font-size: 1.1rem;
+      "
+    >
+      AŽURIRAJ PODATKE
+    </button>
+  </div>
+</div>

@@ -1,0 +1,120 @@
+<div class="container mt-5 mb-5" *ngIf="recept">
+  <div class="row">
+    <div class="col-md-5">
+      <div class="position-relative">
+        <img
+          [src]="recept.slika || 'assets/no-image.png'"
+          class="img-fluid rounded shadow mb-3 w-100"
+          [alt]="recept.naslov"
+        />
+        <button
+          (click)="toggleOmiljeni()"
+          class="btn btn-light position-absolute top-0 end-0 m-2 shadow-sm rounded-circle"
+          style="width: 45px; height: 45px"
+        >
+          {{ jeOmiljen ? '❤️' : '🤍' }}
+        </button>
+      </div>
+
+      <div class="card p-3 shadow-sm bg-light mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h4 class="text-warning m-0">
+            ⭐ {{ recept.prosecna_ocena || '0.0' }}
+          </h4>
+          <span class="text-muted small"
+            >{{ recept.broj_ocena }} recenzija</span
+          >
+        </div>
+        <hr />
+        <p><strong>👨‍🍳 Autor:</strong> {{ recept.autor }}</p>
+        <p><strong>🕒 Vreme:</strong> {{ recept.vreme }} min</p>
+        <p>
+          <strong>⚖️ Težina:</strong>
+          <span class="badge bg-warning text-dark">{{ recept.tezina }}</span>
+        </p>
+        <p><strong>👥 Porcija:</strong> Za {{ recept.broj_osoba }} osobe</p>
+      </div>
+
+      <div
+        class="card p-3 shadow-sm border-0"
+        style="background-color: #f8f9fa"
+      >
+        <h5 style="color: #ff7675">Ocenite ovaj recept</h5>
+        <div class="mb-2">
+          <select [(ngModel)]="novaOcena" class="form-select form-select-sm">
+            <option [value]="5">⭐⭐⭐⭐⭐ (5)</option>
+            <option [value]="4">⭐⭐⭐⭐ (4)</option>
+            <option [value]="3">⭐⭐⭐ (3)</option>
+            <option [value]="2">⭐⭐ (2)</option>
+            <option [value]="1">⭐ (1)</option>
+          </select>
+        </div>
+        <textarea
+          [(ngModel)]="noviKomentar"
+          class="form-control form-control-sm mb-2"
+          rows="3"
+          placeholder="Vaš komentar..."
+        ></textarea>
+        <button
+          (click)="posaljiInterakciju()"
+          class="btn btn-sm text-white w-100"
+          style="background-color: #ff7675"
+        >
+          Pošalji utisak
+        </button>
+      </div>
+    </div>
+
+    <div class="col-md-7">
+      <h1 class="display-5 mb-2">{{ recept.naslov }}</h1>
+      <p class="text-muted">Tip jela: {{ recept.tip_jela }}</p>
+      <hr />
+
+      <h3>🛒 Sastojci</h3>
+      <ul class="list-group list-group-flush mb-4">
+        <li class="list-group-item" *ngFor="let s of listaSastojaka">
+          <input class="form-check-input me-2" type="checkbox" /> {{ s }}
+        </li>
+      </ul>
+
+      <h3>📝 Priprema</h3>
+      <div
+        class="p-4 border-start border-4 border-success bg-white shadow-sm rounded mb-5"
+      >
+        <p style="white-space: pre-line; line-height: 1.6">
+          {{ recept.koraci }}
+        </p>
+      </div>
+
+      <div class="mt-5">
+        <h3>💬 Komentari korisnika</h3>
+        <hr />
+        <div
+          *ngIf="!recept.komentari || recept.komentari.length === 0"
+          class="text-muted italic"
+        >
+          Nema komentara za ovaj recept. Budite prvi koji će ostaviti utisak!
+        </div>
+
+        <div
+          class="card mb-2 border-0 shadow-sm"
+          *ngFor="let k of recept.komentari"
+        >
+          <div class="card-body py-2">
+            <div class="d-flex justify-content-between">
+              <strong style="color: #ff7675">{{ k.autor }}</strong>
+              <small class="text-muted">{{ k.datum }}</small>
+            </div>
+            <p class="mb-0 mt-1">{{ k.tekst }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <button routerLink="/recepti" class="btn btn-outline-secondary">
+          Povratak na listu
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,99 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 5%;
+  background-color: #2d3436;
+  color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Sekcije navbara */
+.nav-section {
+  display: flex;
+  align-items: center;
+  flex: 1; /* Svaka sekcija zauzima 33.3% prostora */
+}
+
+/* Pozicioniranje sekcija */
+.nav-section.left {
+  justify-content: flex-start;
+  gap: 20px;
+}
+
+.nav-section.center {
+  justify-content: center; /* Logo ide u sredinu */
+}
+
+.nav-section.right {
+  justify-content: flex-end; /* Korisnik ide skroz desno */
+  gap: 20px;
+}
+
+/* Stil za logo (brand) */
+.nav-brand {
+  font-size: 1.6rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: #ff7675;
+  white-space: nowrap;
+  transition: transform 0.3s ease;
+}
+
+.nav-brand:hover {
+  transform: scale(1.05);
+}
+
+/* Stilovi za linkove */
+.nav-section a {
+  color: #dfe6e9;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+  cursor: pointer;
+}
+
+.nav-section a:hover {
+  color: #ff7675;
+}
+
+/* Dugmad i uloge (zadržavamo tvoje stilove) */
+.btn-add-nav {
+  background: #2ecc71;
+  color: white !important;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+.user-role {
+  background: #636e72;
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  color: #fab1a0;
+}
+
+.logout-link {
+  border: 1px solid #ff7675;
+  color: #ff7675 !important;
+  padding: 4px 12px;
+  border-radius: 5px;
+}
+
+.logout-link:hover {
+  background: #ff7675;
+  color: white !important;
+}
+
+/* Responzivnost */
+@media (max-width: 900px) {
+  .navbar {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .nav-section {
+    justify-content: center !important;
+    width: 100%;
+  }
+}

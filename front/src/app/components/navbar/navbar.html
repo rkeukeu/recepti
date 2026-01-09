@@ -1,0 +1,34 @@
+<nav class="navbar shadow-sm">
+  <div class="nav-section left">
+    <a routerLink="/recepti" routerLinkActive="active">Svi Recepti</a>
+    <a
+      *ngIf="auth.isLoggedIn && auth.isAutor()"
+      routerLink="/dodaj-recept"
+      class="btn-add-nav"
+      >+ Dodaj Recept</a
+    >
+  </div>
+
+  <div class="nav-section center">
+    <div class="nav-brand" routerLink="/">🍲 Recepti App</div>
+  </div>
+
+  <div class="nav-section right">
+    <ng-container *ngIf="!auth.isLoggedIn">
+      <a routerLink="/login">Prijava</a>
+      <a routerLink="/registracija" class="btn-register">Registracija</a>
+    </ng-container>
+
+    <ng-container *ngIf="auth.isLoggedIn">
+      <a routerLink="/moj-profil" class="nav-profile-link">
+        <i class="bi bi-person-circle"></i> Moj Profil
+      </a>
+
+      <span class="user-role">[{{ auth.uloga }}]</span>
+
+      <a (click)="auth.odjava()" class="logout-link" style="cursor: pointer"
+        >Odjava</a
+      >
+    </ng-container>
+  </div>
+</nav>

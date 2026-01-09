@@ -1,0 +1,97 @@
+<div class="container mt-5">
+  <div class="card shadow-lg p-4">
+    <h2 class="text-center mb-4">Dodaj Novi Recept</h2>
+
+    <div class="row">
+      <div class="col-md-8 mb-3">
+        <label class="form-label">Naziv jela</label>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="noviRecept.naslov"
+          placeholder="Unesite naziv..."
+        />
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Tip jela</label>
+        <select class="form-select" [(ngModel)]="noviRecept.tip_jela">
+          <option value="Supa">Supa</option>
+          <option value="Salata">Salata</option>
+          <option value="Glavno jelo">Glavno jelo</option>
+          <option value="Dezert">Dezert</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Vreme pripreme (min)</label>
+        <input
+          type="number"
+          class="form-control"
+          [(ngModel)]="noviRecept.vreme_pripreme"
+        />
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Težina</label>
+        <select class="form-select" [(ngModel)]="noviRecept.tezina">
+          <option value="Lako">Lako</option>
+          <option value="Srednje">Srednje</option>
+          <option value="Teško">Teško</option>
+        </select>
+      </div>
+      <div class="col-md-4 mb-3">
+        <label class="form-label">Broj osoba</label>
+        <input
+          type="number"
+          class="form-control"
+          [(ngModel)]="noviRecept.broj_osoba"
+        />
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Sastojci</label>
+      <textarea
+        class="form-control"
+        [(ngModel)]="noviRecept.sastojci"
+        rows="3"
+        placeholder="Paradajz, sir, masline..."
+      ></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Koraci pripreme</label>
+      <textarea
+        class="form-control"
+        [(ngModel)]="noviRecept.koraci"
+        rows="5"
+        placeholder="1. Iseckati povrće..."
+      ></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">URL slike</label>
+      <input
+        type="text"
+        class="form-control"
+        [(ngModel)]="noviRecept.slika"
+        placeholder="http://putanja-do-slike.jpg"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Oznake (tagovi)</label>
+      <input
+        type="text"
+        class="form-control"
+        [(ngModel)]="noviRecept.oznake"
+        placeholder="posno, brzo, italijanska kuhinja"
+      />
+    </div>
+
+    <button (click)="submit()" class="btn btn-success btn-lg w-100">
+      Objavi Recept
+    </button>
+  </div>
+</div>

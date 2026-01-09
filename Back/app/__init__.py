@@ -3,9 +3,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_socketio import SocketIO
 from flask_mail import Mail
+from flask_cors import CORS  # Uvezi CORS
 from redis import Redis
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv()
 db = SQLAlchemy()
@@ -15,9 +17,19 @@ mail = Mail()
 def create_app():
     app = Flask(__name__)
     
+    CORS(app, resources={r"/*": {
+    "origins": "http://localhost:4200",
+    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "allow_headers": ["Content-Type", "Authorization"]
+    }})
+    
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24) # Token traje 24 sata
+    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
+    #app.config['JWT_COOKIE_CSRF_PROTECT'] = False
+    #app.config['JWT_CSRF_CHECK_FORM'] = False
     
     app.config.update(
         MAIL_SERVER=os.getenv('MAIL_SERVER'),
@@ -43,7 +55,7 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/auth')
 
     from .recipe_routes import recipe_bp
-    app.register_blueprint(recipe_bp, url_prefix='/recipes')
+    app.register_blueprint(recipe_bp, url_prefix='/recepti')
 
     with app.app_context():
         from .models import User, Recipe

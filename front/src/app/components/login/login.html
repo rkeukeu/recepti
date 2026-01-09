@@ -1,0 +1,26 @@
+<div class="login-container">
+  <div class="login-card">
+    <h2>Prijava</h2>
+    <div class="form-group">
+      <label>Email adresa</label>
+      <input
+        type="email"
+        [(ngModel)]="podaci.email"
+        placeholder="Unesite email"
+      />
+    </div>
+    <div class="form-group">
+      <label>Lozinka</label>
+      <input
+        type="password"
+        [(ngModel)]="podaci.lozinka"
+        placeholder="Unesite lozinku"
+      />
+    </div>
+    <button (click)="submit()" class="login-btn">Prijavi se</button>
+    <div class="auth-footer">
+      <span>Nemate nalog?</span>
+      <a routerLink="/registracija" class="auth-link">Registrujte se</a>
+    </div>
+  </div>
+</div>
