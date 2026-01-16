@@ -1,77 +1,69 @@
-To je odlično pitanje. Budući da si dodao Angular frontend, tvoj README mora da pokrije oba dela aplikacije, jer kolege koje skinu projekat moraju da znaju kako da pokrenu i klijentski deo.
+# 🍲 Recepti Fullstack Aplikacija
 
-Takođe, u requirements.txt imaš sve što je potrebno za Flask, ali im nedostaje uputstvo za Node.js i Angular CLI.
+Ovaj projekat je moderna web aplikacija za deljenje recepata, izgrađena pomoću **Flask** (Backend) i **Angular** (Frontend) tehnologija. Sistem implementira napredne koncepte kao što su real-time komunikacija, keširanje podataka i sigurna autentifikacija.
 
-Evo kako bi trebalo da izgleda tvoj novi, kompletni README.md koji pokriva i Backend i Frontend:
+## 🚀 Tehnologije
 
-🍲 Aplikacija za Recepte (Fullstack)
-Ovaj projekat se sastoji od Flask (Python) backenda i Angular frontenda.
+### Backend:
+* **Framework:** Flask
+* **Baza podataka:** PostgreSQL (SQLAlchemy ORM)
+* **Keširanje i bezbednost:** Redis (za pretragu i blokadu login pokušaja)
+* **Autentifikacija:** JWT (JSON Web Tokens)
+* **Real-time:** Flask-SocketIO
+* **Email:** Flask-Mail (integracija sa Mailtrap-om)
 
-📋 Preduslovi
-Pre nego što počnete, uverite se da imate instalirano:
+### Frontend:
+* **Framework:** Angular 17+
+* **Stilizacija:** Bootstrap 5 & Custom CSS
+* **Komunikacija:** HttpClient sa JWT Interceptorom
 
-Python 3.x
+---
 
-Node.js & npm (preporučena LTS verzija)
+## 📋 Preduslovi za pokretanje
 
-Docker Desktop
+Za uspešno pokretanje projekta, potrebno je imati instalirano:
+* [Python 3.10+](https://www.python.org/)
+* [Node.js 18+](https://nodejs.org/)
+* [Docker Desktop](https://www.docker.com/)
 
-🔧 1. Backend Postavka (Flask)
-Uđite u folder Back (ili gde god ti je backend kod):
+---
 
-Virtuelno okruženje:
+## 🔧 Instalacija i Pokretanje
 
-Bash
+### 1. Backend (Flask)
+Uđite u direktorijum `Back/`:
+1. Kreirajte virtuelno okruženje: `python -m venv venv`
+2. Aktivirajte ga: `venv\Scripts\activate` (Windows) ili `source venv/bin/activate` (Linux/Mac)
+3. Instalirajte zavisnosti: `pip install -r requirements.txt`
+4. Podesite `.env` fajl (DATABASE_URL, REDIS_HOST, MAIL parametri).
+5. Pokrenite server: `python run.py`
 
-python -m venv venv
-venv\Scripts\activate  # Windows
-source venv/bin/activate # Mac/Linux
-pip install -r requirements.txt
-Docker (Baza i Redis): Pokrenite kontejnere za bazu i keširanje:
-
-Bash
-
-# PostgreSQL
+### 2. Infrastruktura (Docker)
+Pokrenite potrebne servise putem terminala:
+```bash
+# PostgreSQL baza
 docker run --name recepti-db -e POSTGRES_PASSWORD=admin -p 5433:5432 -d postgres
 
-# Redis
+# Redis server
 docker run --name recepti-redis -p 6379:6379 -d redis
-Konfiguracija (.env): Kreirajte .env fajl u backend folderu (proverite da li su kredencijali za Mailtrap ispravni).
 
-Pokretanje:
+3. Frontend (Angular)
+Uđite u direktorijum front/:
 
-Bash
+Instalirajte zavisnosti: npm install
 
-python run.py
-🎨 2. Frontend Postavka (Angular)
-Uđite u folder front:
+Pokrenite aplikaciju: ng serve
 
-Instalacija zavisnosti:
+Otvorite: http://localhost:4200
 
-Bash
 
-npm install
-Instalacija Angular CLI (opciono, ako ga kolege nemaju globalno):
+🛠 Ključne Funkcionalnosti
+Sistem uloga: Korisnici (Čitalac, Autor, Administrator).
 
-Bash
+Real-time zahtevi: Slanje zahteva za ulogu Autora administratoru putem WebSocketa.
 
-npm install -g @angular/cli
-Pokretanje aplikacije:
+Napredna pretraga: Keširanje rezultata pretrage u Redisu radi bržeg odziva.
 
-Bash
+Interaktivnost: Ocenjivanje recepata, ostavljanje komentara i dodavanje u omiljene (favoriti).
 
-ng serve
-Aplikacija će biti dostupna na adresi http://localhost:4200.
-
-🚀 Kako testirati?
-Prvo pokrenite Docker kontejnere.
-
-Pokrenite Flask server (on će automatski kreirati tabele).
-
-Pokrenite Angular frontend.
-
-Registrujte se kao korisnik.
-
-Napomena: Da biste testirali funkcije autora, admin mora da odobri zahtev (ovo se može uraditi direktno u bazi promenom kolone uloga u 'administrator' za vaš nalog, kako biste pristupili dashboard-u).
-
-Ako dobijete "Token has expired", izlogujte se i ulogujte ponovo. Napravicu refresh nekad kad budem imao vremena ako treba?!?!?!
+Bezbednost: Automatska blokada IP adrese/naloga nakon 3 neuspešna login pokušaja.
