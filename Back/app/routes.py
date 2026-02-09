@@ -7,6 +7,9 @@ from flask_mail import Message
 from . import socketio, mail
 import bcrypt
 from datetime import datetime
+import os
+import uuid
+from werkzeug.utils import secure_filename
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -341,3 +344,44 @@ def get_top_authors():
     top_5 = autor_sa_ocenom[:5]
     
     return jsonify(top_5), 200
+    
+    def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
+
+@auth_bp.route('/upload', methods=['POST'])
+@jwt_required()
+def upload_image():
+    """Endpoint za upload slika"""
+    if 'file' not in request.files:
+        return jsonify({"msg": "Nema fajla u zahtevu"}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"msg": "Nije izabran fajl"}), 400
+    
+    if not allowed_file(file.filename):
+        return jsonify({"msg": "Nedozvoljen tip fajla. Dozvoljeni: png, jpg, jpeg, gif, webp"}), 400
+    
+    # Generiši jedinstveno ime fajla
+    original_filename = secure_filename(file.filename)
+    file_extension = original_filename.rsplit('.', 1)[1].lower()
+    unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
+    
+    # Sačuvaj fajl
+    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
+    file.save(file_path)
+    
+    # Vrati URL
+    file_url = f"/uploads/{unique_filename}"
+    return jsonify({
+        "msg": "Fajl uspešno uploadovan",
+        "url": file_url,
+        "filename": unique_filename
+    }), 200
+
+# Serviranje uploadovanih fajlova
+@auth_bp.route('/uploads/<filename>')
+def serve_uploaded_file(filename):
+    """Serviraj uploadovane fajlove"""
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)

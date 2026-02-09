@@ -71,14 +71,36 @@
     </div>
 
     <div class="mb-3">
-      <label class="form-label">URL slike</label>
-      <input
-        type="text"
-        class="form-control"
-        [(ngModel)]="noviRecept.slika"
-        placeholder="http://putanja-do-slike.jpg"
-      />
+  <label class="form-label">Slika recepta</label>
+  
+  <!-- File input -->
+  <input 
+    type="file" 
+    class="form-control" 
+    (change)="onImageSelected($event)"
+    accept="image/*"
+    #fileInput
+  >
+  
+  <!-- Preview -->
+  <div *ngIf="imagePreview" class="mt-3">
+    <p class="mb-2">Preview:</p>
+    <img [src]="imagePreview" class="img-thumbnail" style="max-height: 200px;">
+  </div>
+  
+  <!-- Upload status -->
+  <div *ngIf="uploading" class="mt-2">
+    <div class="spinner-border spinner-border-sm text-primary" role="status">
+      <span class="visually-hidden">Uploaduje se...</span>
     </div>
+    <span class="ms-2">Uploadujem sliku...</span>
+  </div>
+  
+  <!-- Error -->
+  <div *ngIf="uploadError" class="alert alert-danger mt-2">
+    {{ uploadError }}
+  </div>
+</div>
 
     <div class="mb-3">
       <label class="form-label">Oznake (tagovi)</label>
