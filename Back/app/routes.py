@@ -345,9 +345,21 @@ def get_top_authors():
     
     return jsonify(top_5), 200
     
-    def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
+def allowed_file(filename):
+    # Proveri da li fajl ima ekstenziju
+    if '.' not in filename:
+        return False
+    
+    # Podeli ime fajla i uzmi ekstenziju
+    parts = filename.rsplit('.', 1)
+    if len(parts) < 2:
+        return False
+    
+    extension = parts[1].lower()
+    
+    # Proveri da li je ekstenzija dozvoljena
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+    return extension in allowed_extensions
 
 @auth_bp.route('/upload', methods=['POST'])
 @jwt_required()

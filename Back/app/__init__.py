@@ -34,8 +34,6 @@ def create_app():
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
     app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
     
-    # Kreiraj uploads folder ako ne postoji
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.config.update(
         MAIL_SERVER=os.getenv('MAIL_SERVER'),
         MAIL_PORT=int(os.getenv('MAIL_PORT') or 2525),

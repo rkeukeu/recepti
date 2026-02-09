@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # 1. POSTGRESQL
+  postgres:
+    image: postgres:15
+    container_name: recepti-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. REDIS
+  redis:
+    image: redis:7-alpine
+    container_name: recepti-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 3. FLASK BACKEND
+  backend:
+    build: ./back
+    container_name: recepti-backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:admin@postgres:5432/postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET_KEY: neka_tajna_rec
+    volumes:
+      - ./back/uploads:/app/uploads
+    restart: unless-stopped
+
+  # 4. ANGULAR FRONTEND - OVO JE POGREŠNO UVUČENO!
+  frontend:
+    build: ./front
+    container_name: recepti-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
