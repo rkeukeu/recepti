@@ -13,6 +13,7 @@ import { AuthInterceptor } from './Interceptors/auth-interceptor';
 import { RecipeAdd } from './components/recipe-add/recipe-add';
 import { RecipeDetails } from './components/recipe-details/recipe-details';
 import { Profile } from './components/profile/profile';
+import { Favorites } from './pages/favorites/favorites';
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { Profile } from './components/profile/profile';
     RecipeAdd,
     RecipeDetails,
     Profile,
+    Favorites,
   ],
   imports: [BrowserModule, AppRoutingModule, HttpClientModule, FormsModule],
   providers: [

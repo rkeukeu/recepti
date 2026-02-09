@@ -1,0 +1,10 @@
+<h2>Moji omiljeni recepti</h2>
+
+<div *ngIf="favorites.length === 0">
+  Nema omiljenih recepata
+</div>
+
+<div *ngFor="let r of favorites">
+  {{ r.naslov }}
+  <button (click)="remove(r.id)">Ukloni</button>
+</div>
