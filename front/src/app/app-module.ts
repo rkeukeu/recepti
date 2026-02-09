@@ -1,5 +1,7 @@
-import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
@@ -7,13 +9,17 @@ import { Login } from './components/login/login';
 import { Register } from './components/register/register';
 import { Navbar } from './components/navbar/navbar';
 import { RecipeList } from './components/recipe-list/recipe-list';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
-import { AuthInterceptor } from './Interceptors/auth-interceptor';
 import { RecipeAdd } from './components/recipe-add/recipe-add';
 import { RecipeDetails } from './components/recipe-details/recipe-details';
 import { Profile } from './components/profile/profile';
+<<<<<<< Updated upstream
 import { Favorites } from './pages/favorites/favorites';
+=======
+import { AdminPanelComponent } from './components/admin-panel/admin-panel.component';
+
+import { AuthInterceptor } from './Interceptors/auth-interceptor';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+>>>>>>> Stashed changes
 
 @NgModule({
   declarations: [
@@ -25,13 +31,21 @@ import { Favorites } from './pages/favorites/favorites';
     RecipeAdd,
     RecipeDetails,
     Profile,
+<<<<<<< Updated upstream
     Favorites,
+=======
+    AdminPanelComponent
   ],
-  imports: [BrowserModule, AppRoutingModule, HttpClientModule, FormsModule],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    FormsModule,
+    HttpClientModule
+>>>>>>> Stashed changes
+  ],
   providers: [
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    provideBrowserGlobalErrorListeners(),
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
   ],
-  bootstrap: [App],
+  bootstrap: [App]
 })
-export class AppModule {}
+export class AppModule { }

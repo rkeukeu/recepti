@@ -1,0 +1,125 @@
+<div class="container mt-4" *ngIf="!ucitavanje; else loading">
+    <h2 class="mb-4">📊 Administratorski Panel</h2>
+  
+    <!-- Statistika kartice -->
+    <div class="row mb-4">
+      <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white shadow">
+          <div class="card-body text-center">
+            <h5 class="card-title">Ukupno korisnika</h5>
+            <h2>{{ statistika.ukupno_korisnika || 0 }}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white shadow">
+          <div class="card-body text-center">
+            <h5 class="card-title">Autora</h5>
+            <h2>{{ statistika.ukupno_autora || 0 }}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white shadow">
+          <div class="card-body text-center">
+            <h5 class="card-title">Čitalaca</h5>
+            <h2>{{ statistika.ukupno_citalaca || 0 }}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-dark shadow">
+          <div class="card-body text-center">
+            <h5 class="card-title">Recepata</h5>
+            <h2>{{ statistika.ukupno_recepata || 0 }}</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Top 5 autora -->
+    <div class="card shadow mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">🏆 Top 5 autora (po prosečnoj oceni)</h5>
+        <button (click)="preuzmiIzvestaj()" class="btn btn-danger btn-sm">
+          📥 Preuzmi PDF izveštaj
+        </button>
+      </div>
+      <div class="card-body">
+        <div *ngIf="topAutori.length === 0" class="text-center text-muted">
+          Nema autora sa ocenama.
+        </div>
+        <div *ngFor="let autor of topAutori; let i = index" class="d-flex justify-content-between align-items-center border-bottom py-2">
+          <div>
+            <span class="badge bg-primary me-2">#{{ i + 1 }}</span>
+            <strong>{{ autor.ime }} {{ autor.prezime }}</strong>
+            <small class="text-muted ms-2">({{ autor.email }})</small>
+          </div>
+          <div>
+            <span class="badge bg-success me-2">⭐ {{ autor.prosecna_ocena }}</span>
+            <span class="badge bg-secondary">{{ autor.broj_recepata }} recepata</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Lista svih korisnika -->
+    <div class="card shadow">
+      <div class="card-header">
+        <h5 class="mb-0">👥 Svi korisnika platforme</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Ime i prezime</th>
+                <th>Email</th>
+                <th>Uloga</th>
+                <th>Broj recepata</th>
+                <th>Datum pridruživanja</th>
+                <th>Akcije</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let korisnik of korisnici">
+                <td>{{ korisnik.id }}</td>
+                <td>{{ korisnik.ime }} {{ korisnik.prezime }}</td>
+                <td>{{ korisnik.email }}</td>
+                <td>
+                  <span [ngClass]="{
+                    'badge bg-success': korisnik.uloga === 'autor',
+                    'badge bg-primary': korisnik.uloga === 'čitalac',
+                    'badge bg-danger': korisnik.uloga === 'administrator'
+                  }">
+                    {{ korisnik.uloga }}
+                  </span>
+                </td>
+                <td>{{ korisnik.broj_recepata }}</td>
+                <td>{{ korisnik.datum_pridruzivanja }}</td>
+                <td>
+                  <button 
+                    *ngIf="korisnik.uloga !== 'administrator'" 
+                    (click)="obrisiKorisnika(korisnik.id, korisnik.email)"
+                    class="btn btn-sm btn-outline-danger"
+                  >
+                    Obriši
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <ng-template #loading>
+    <div class="text-center mt-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Učitavanje...</span>
+      </div>
+      <p class="mt-2">Učitavanje administratorskog panela...</p>
+    </div>
+  </ng-template>

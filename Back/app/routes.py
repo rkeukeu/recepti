@@ -233,3 +233,111 @@ def get_favorites():
 
     current_app.redis.setex(cache_key, 600, json.dumps(data))
     return jsonify(data), 200
+
+# --- ADMIN: PREUZIMANJE SVIH KORISNIKA ---
+@auth_bp.route('/admin/korisnici', methods=['GET'])
+@jwt_required()
+def get_all_users():
+    admin_id = get_jwt_identity()
+    admin = User.query.get(admin_id)
+    
+    if admin.uloga != 'administrator':
+        return jsonify({"msg": "Samo administrator može da vidi listu korisnika."}), 403
+    
+    users = User.query.all()
+    result = []
+    for user in users:
+        result.append({
+            "id": user.id,
+            "ime": user.ime,
+            "prezime": user.prezime,
+            "email": user.email,
+            "uloga": user.uloga,
+            "datum_pridruzivanja": user.datum_pridruzivanja.strftime("%d.%m.%Y.") if user.datum_pridruzivanja else None,
+            "broj_recepata": len(user.objavljeni_recepti)
+        })
+    
+    return jsonify(result), 200
+
+# --- ADMIN: BRISANJE KORISNIKA ---
+@auth_bp.route('/admin/korisnici/<int:user_id>', methods=['DELETE'])
+@jwt_required()
+def delete_user(user_id):
+    admin_id = get_jwt_identity()
+    admin = User.query.get(admin_id)
+    
+    if admin.uloga != 'administrator':
+        return jsonify({"msg": "Samo administrator može da briše korisnike."}), 403
+    
+    if admin_id == user_id:
+        return jsonify({"msg": "Ne možete obrisati sopstveni nalog."}), 400
+    
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"msg": "Korisnik nije pronađen."}), 404
+    
+    db.session.delete(user)
+    db.session.commit()
+    
+    return jsonify({"msg": f"Korisnik {user.email} je uspešno obrisan."}), 200
+
+# --- ADMIN: STATISTIKA ---
+@auth_bp.route('/admin/statistika', methods=['GET'])
+@jwt_required()
+def get_statistics():
+    admin_id = get_jwt_identity()
+    admin = User.query.get(admin_id)
+    
+    if admin.uloga != 'administrator':
+        return jsonify({"msg": "Samo administrator može da vidi statistiku."}), 403
+    
+    ukupno_korisnika = User.query.count()
+    ukupno_autora = User.query.filter_by(uloga='autor').count()
+    ukupno_citalaca = User.query.filter_by(uloga='čitalac').count()
+    ukupno_administratora = User.query.filter_by(uloga='administrator').count()
+    ukupno_recepata = Recipe.query.count()
+    
+    return jsonify({
+        "ukupno_korisnika": ukupno_korisnika,
+        "ukupno_autora": ukupno_autora,
+        "ukupno_citalaca": ukupno_citalaca,
+        "ukupno_administratora": ukupno_administratora,
+        "ukupno_recepata": ukupno_recepata
+    }), 200
+
+# --- ADMIN: TOP 5 AUTORA PO OCENI (ZA PDF) ---
+@auth_bp.route('/admin/top-autori', methods=['GET'])
+@jwt_required()
+def get_top_authors():
+    admin_id = get_jwt_identity()
+    admin = User.query.get(admin_id)
+    
+    if admin.uloga != 'administrator':
+        return jsonify({"msg": "Samo administrator može da vidi top autore."}), 403
+    
+    autori = User.query.filter_by(uloga='autor').all()
+    autor_sa_ocenom = []
+    
+    for autor in autori:
+        sve_ocene = []
+        for recept in autor.objavljeni_recepti:
+            sve_ocene.extend([o.vrednost for o in recept.ocene])
+        
+        prosecna_ocena = sum(sve_ocene) / len(sve_ocene) if sve_ocene else 0
+        broj_recepata = len(autor.objavljeni_recepti)
+        
+        if broj_recepata > 0:  # Samo autori sa bar jednim receptom
+            autor_sa_ocenom.append({
+                "id": autor.id,
+                "ime": autor.ime,
+                "prezime": autor.prezime,
+                "email": autor.email,
+                "prosecna_ocena": round(prosecna_ocena, 2),
+                "broj_recepata": broj_recepata
+            })
+    
+    # Sortiranje po prosečnoj oceni (opadajuće)
+    autor_sa_ocenom.sort(key=lambda x: x['prosecna_ocena'], reverse=True)
+    top_5 = autor_sa_ocenom[:5]
+    
+    return jsonify(top_5), 200
