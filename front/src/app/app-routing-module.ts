@@ -6,15 +6,8 @@ import { RecipeList } from './components/recipe-list/recipe-list';
 import { RecipeAdd } from './components/recipe-add/recipe-add';
 import { RecipeDetails } from './components/recipe-details/recipe-details';
 import { Profile } from './components/profile/profile';
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 import { Favorites } from './pages/favorites/favorites';
-=======
 import { AdminPanelComponent } from './components/admin-panel/admin-panel.component';
->>>>>>> Stashed changes
-=======
-import { AdminPanelComponent } from './components/admin-panel/admin-panel.component';
->>>>>>> Stashed changes
 
 const routes: Routes = [
   { path: 'login', component: Login },
@@ -23,15 +16,8 @@ const routes: Routes = [
   { path: 'recepti/:id', component: RecipeDetails },
   { path: 'dodaj-recept', component: RecipeAdd },
   { path: 'moj-profil', component: Profile },
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
   { path: 'favorites', component: Favorites },
-=======
   { path: 'admin', component: AdminPanelComponent }, // OVO PREMESTI IZNAD **
->>>>>>> Stashed changes
-=======
-  { path: 'admin', component: AdminPanelComponent }, // OVO PREMESTI IZNAD **
->>>>>>> Stashed changes
   { path: '', redirectTo: '/recepti', pathMatch: 'full' },
   { path: '**', redirectTo: '/recepti' }, // Wildcard MORA BITI POSLEDNJI
 ];
