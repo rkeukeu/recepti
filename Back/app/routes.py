@@ -1,8 +1,10 @@
+from .models import Recipe
+import json
 from flask import Blueprint, request, jsonify, current_app
 from .models import db, User
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_mail import Message
-from app import socketio, mail
+from . import socketio, mail
 import bcrypt
 from datetime import datetime
 
@@ -174,3 +176,60 @@ def update_profile():
     except Exception as e:
         db.session.rollback()
         return jsonify({"msg": "Greška pri čuvanju podataka", "error": str(e)}), 500
+    
+@auth_bp.route("/favorites/<int:recipe_id>", methods=["POST"])
+@jwt_required()
+def add_favorite(recipe_id):
+    user_id = get_jwt_identity()
+
+    user = User.query.get_or_404(user_id)
+    recipe = Recipe.query.get_or_404(recipe_id)
+
+    if recipe in user.lista_omiljenih:
+        return jsonify({"message": "Already in favorites"}), 400
+
+    user.lista_omiljenih.append(recipe)
+    db.session.commit()
+
+    current_app.redis.delete(f"favorites:user:{user_id}")
+
+    return jsonify({"message": "Added to favorites"}), 201
+
+@auth_bp.route("/favorites/<int:recipe_id>", methods=["DELETE"])
+@jwt_required()
+def remove_favorite(recipe_id):
+    user_id = get_jwt_identity()
+
+    user = User.query.get_or_404(user_id)
+    recipe = Recipe.query.get_or_404(recipe_id)
+
+    if recipe not in user.lista_omiljenih:
+        return jsonify({"message": "Not in favorites"}), 404
+
+    user.lista_omiljenih.remove(recipe)
+    db.session.commit()
+
+    current_app.redis.delete(f"favorites:user:{user_id}")
+
+    return jsonify({"message": "Removed from favorites"}), 200
+
+@auth_bp.route("/favorites", methods=["GET"])
+@jwt_required()
+def get_favorites():
+    user_id = get_jwt_identity()
+    cache_key = f"favorites:user:{user_id}"
+
+    cached = current_app.redis.get(cache_key)
+    if cached:
+        return jsonify(json.loads(cached)), 200
+
+    user = User.query.get_or_404(user_id)
+
+    data = [{
+        "id": r.id,
+        "naslov": r.naslov,
+        "slika": r.slika
+    } for r in user.lista_omiljenih]
+
+    current_app.redis.setex(cache_key, 600, json.dumps(data))
+    return jsonify(data), 200
