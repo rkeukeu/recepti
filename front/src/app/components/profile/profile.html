@@ -121,4 +121,12 @@
       AŽURIRAJ PODATKE
     </button>
   </div>
+  <div class="text-center mt-4" *ngIf="user.uloga === 'čitalac'">
+  <button (click)="zatraziUloguAutora()" class="btn btn-warning">
+    <i class="bi bi-star-fill"></i> Pošalji zahtev za autora
+  </button>
+  <p class="text-muted mt-2 small">
+    Administrator će odobriti ili odbiti vaš zahtev. Bićete obavešteni email-om.
+  </p>
+</div>
 </div>

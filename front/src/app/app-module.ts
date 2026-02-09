@@ -27,7 +27,6 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     RecipeAdd,
     RecipeDetails,
     Profile,
-    // Favorites, // UKLONI OVO ODAVDE
     AdminPanelComponent
   ],
   imports: [
@@ -35,7 +34,7 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     AppRoutingModule,
     FormsModule,
     HttpClientModule,
-    Favorites // DODAJ OVDE
+    Favorites
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }

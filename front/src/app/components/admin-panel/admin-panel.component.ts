@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AdminService } from '../../services/admin.service';
-// UKLONI import { saveAs } from 'file-saver';
-
+import { SocketService } from '../../services/socket.service';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 @Component({
   selector: 'admin-panel',
   standalone: false,
@@ -12,13 +12,74 @@ export class AdminPanelComponent implements OnInit {
   korisnici: any[] = [];
   statistika: any = {};
   topAutori: any[] = [];
+  noviZahtevi: any[] = [];
   ucitavanje = true;
 
-  constructor(private adminService: AdminService) {}
-
+  constructor(
+    private adminService: AdminService,
+    private socketService: SocketService,  // DODAJ OVO
+    private http: HttpClient  // DODAJ ZA ODODBRU
+  ) {}
   ngOnInit(): void {
     this.ucitajPodatke();
+	this.pretplatiNaZahteve();
   }
+  
+  ngOnDestroy(): void {
+    this.socketService.disconnect();
+  }
+  
+  pretplatiNaZahteve(): void {
+    this.socketService.onNoviZahtev((zahtev: any) => {
+      console.log('Novi zahtev primljen:', zahtev);
+      
+      // Dodaj u listu novih zahteva
+      this.noviZahtevi.unshift(zahtev);  // Dodaj na početak
+      
+      // Prikaži notifikaciju (opciono)
+      alert(`🆕 Novi zahtev za autora:\n${zahtev.ime}\n${zahtev.email}`);
+    });
+  }
+
+  // DODAJ OVU METODU ZA ODOBRENJE:
+  odobriAutora(userId: number, email: string): void {
+    if (confirm(`Odobriti korisnika ${email} kao autora?`)) {
+      const token = localStorage.getItem('token');
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      
+      this.http.post(
+        `http://localhost:5000/auth/admin/odobri-autora/${userId}`, 
+        {}, 
+        { headers }
+      ).subscribe({
+        next: (res: any) => {
+          alert(res.msg || 'Korisnik odobren kao autor!');
+          
+          // Ukloni iz liste zahteva
+          this.noviZahtevi = this.noviZahtevi.filter(z => z.user_id !== userId);
+          
+          // Osveži listu korisnika
+          this.ucitajPodatke();
+        },
+        error: (err: any) => {
+          alert(err.error?.msg || 'Greška pri odobravanju');
+        }
+      });
+    }
+  }
+
+  // DODAJ OVU METODU ZA ODBIJANJE:
+  odbijZahtev(userId: number, email: string): void {
+    const razlog = prompt(`Unesite razlog odbijanja zahteva za ${email}:`);
+    if (razlog) {
+      alert(`Zahtev odbijen. Razlog: ${razlog}`);
+      this.noviZahtevi = this.noviZahtevi.filter(z => z.user_id !== userId);
+      
+      // OVDE MOŽEŠ DODATI SLANJE EMAIL-A SA RAZLOGOM
+      // this.posaljiEmailOdbijanje(email, razlog);
+    }
+  }
+
 
   ucitajPodatke(): void {
     this.ucitavanje = true;

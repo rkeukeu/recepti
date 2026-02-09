@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Auth } from '../../services/auth';
+import { HttpClient, HttpHeaders } from '@angular/common/http'; // DODAJ
 
 @Component({
   selector: 'app-profile',
@@ -10,7 +11,10 @@ import { Auth } from '../../services/auth';
 export class Profile implements OnInit {
   user: any = {};
 
-  constructor(private authService: Auth) {}
+  constructor(
+    private authService: Auth,
+    private http: HttpClient  // DODAJ OVO
+  ) {}
 
   ngOnInit(): void {
     this.authService.getProfil().subscribe({
@@ -24,5 +28,23 @@ export class Profile implements OnInit {
       next: (res) => alert('Profil uspešno ažuriran!'),
       error: (err) => alert('Greška pri čuvanju podataka.'),
     });
+  }
+
+  // DODAJ OVU METODU:
+  zatraziUloguAutora() {
+    if (confirm('Da li želite da pošaljete zahtev za autora?')) {
+      const token = localStorage.getItem('token');
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      
+      this.http.post('http://127.0.0.1:5000/auth/postani-autor', {}, { headers })
+        .subscribe({
+          next: (res: any) => {
+            alert(res.msg || 'Zahtev poslat administratoru!');
+          },
+          error: (err: any) => {
+            alert(err.error?.msg || 'Greška pri slanju zahteva');
+          }
+        });
+    }
   }
 }

@@ -1,12 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { FavoritesService } from '../../services/favorites.service'; // BITNO: .service na kraju!
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { FavoritesService } from '../../services/favorites.service';
 
 @Component({
   selector: 'app-favorites',
+  standalone: true,  // DODAJ OVO
+  imports: [CommonModule, RouterModule],  // BITNO ZA *ngIf, *ngFor, routerLink
   templateUrl: './favorites.html'
+  // styleUrl: './favorites.css' // Ako postoji CSS fajl
 })
 export class Favorites implements OnInit {
-
   favorites: any[] = [];
 
   constructor(private favoritesService: FavoritesService) {}
