@@ -13,12 +13,18 @@ import { RecipeAdd } from './components/recipe-add/recipe-add';
 import { RecipeDetails } from './components/recipe-details/recipe-details';
 import { Profile } from './components/profile/profile';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { Favorites } from './pages/favorites/favorites';
 =======
+=======
+>>>>>>> Stashed changes
 import { AdminPanelComponent } from './components/admin-panel/admin-panel.component';
 
 import { AuthInterceptor } from './Interceptors/auth-interceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
 @NgModule({
@@ -32,8 +38,11 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     RecipeDetails,
     Profile,
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     Favorites,
 =======
+=======
+>>>>>>> Stashed changes
     AdminPanelComponent
   ],
   imports: [
@@ -41,6 +50,9 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     AppRoutingModule,
     FormsModule,
     HttpClientModule
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   ],
   providers: [
