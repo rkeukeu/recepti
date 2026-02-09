@@ -1,10 +1,35 @@
-<h2>Moji omiljeni recepti</h2>
+<div class="container mt-4">
+  <h2 class="mb-4">❤️ Moji omiljeni recepti</h2>
+  
+  <div *ngIf="favorites.length === 0" class="card text-center p-5">
+    <div class="card-body">
+      <i class="bi bi-heart display-4 text-muted mb-3"></i>
+      <h4>Nemate omiljenih recepata</h4>
+      <p class="text-muted">Dodajte recepte u omiljene klikom na ikonicu srca na stranici recepta.</p>
+      <a routerLink="/recepti" class="btn btn-primary">Pogledajte recepte</a>
+    </div>
+  </div>
 
-<div *ngIf="favorites.length === 0">
-  Nema omiljenih recepata
-</div>
-
-<div *ngFor="let r of favorites">
-  {{ r.naslov }}
-  <button (click)="remove(r.id)">Ukloni</button>
+  <div class="row">
+    <div class="col-md-4 mb-4" *ngFor="let r of favorites">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ r.naslov }}</h5>
+          <p class="card-text text-muted">
+            <i class="bi bi-clock"></i> {{ r.vreme }} min |
+            <i class="bi bi-person"></i> {{ r.autor }}
+          </p>
+          <div class="badge bg-info mb-3">{{ r.tezina || 'Srednje' }}</div>
+        </div>
+        <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between">
+          <button [routerLink]="['/recepti', r.id]" class="btn btn-outline-primary btn-sm">
+            Pogledaj
+          </button>
+          <button (click)="remove(r.id)" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-heartbreak"></i> Ukloni
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

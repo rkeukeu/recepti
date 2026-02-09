@@ -1,11 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { FavoritesService } from '../../services/favorites';
+import { FavoritesService } from '../../services/favorites.service'; // BITNO: .service na kraju!
 
 @Component({
   selector: 'app-favorites',
-  standalone: false,
-  templateUrl: './favorites.html',
-  styleUrl: './favorites.css',
+  templateUrl: './favorites.html'
 })
 export class Favorites implements OnInit {
 
@@ -15,10 +13,10 @@ export class Favorites implements OnInit {
 
   ngOnInit(): void {
     this.favoritesService.getFavorites().subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.favorites = data;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Greška pri učitavanju favorita', err);
       }
     });

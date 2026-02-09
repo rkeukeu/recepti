@@ -167,3 +167,23 @@ def obrisi_recept(recipe_id):
     if kljucevi: current_app.redis.delete(*kljucevi)
     
     return jsonify({"msg": "Recept obrisan"}), 200
+
+# --- PREUZIMANJE OMIJENIH RECEPATA ---
+@recipe_bp.route('/omiljeni', methods=['GET'])
+@jwt_required()
+def get_omiljeni():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    
+    omiljeni = []
+    for recept in user.lista_omiljenih:
+        omiljeni.append({
+            "id": recept.id,
+            "naslov": recept.naslov,
+            "vreme": recept.vreme_pripreme,
+            "tezina": recept.tezina,
+            "slika": recept.slika,
+            "autor": f"{recept.autor.ime} {recept.autor.prezime}"
+        })
+    
+    return jsonify(omiljeni), 200

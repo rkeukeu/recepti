@@ -12,7 +12,7 @@ import { RecipeList } from './components/recipe-list/recipe-list';
 import { RecipeAdd } from './components/recipe-add/recipe-add';
 import { RecipeDetails } from './components/recipe-details/recipe-details';
 import { Profile } from './components/profile/profile';
-import { Favorites } from './pages/favorites/favorites';
+import { Favorites } from './pages/favorites/favorites'; // OVO OSTAVI
 import { AdminPanelComponent } from './components/admin-panel/admin-panel.component';
 import { AuthInterceptor } from './Interceptors/auth-interceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -27,14 +27,15 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     RecipeAdd,
     RecipeDetails,
     Profile,
-    Favorites,
+    // Favorites, // UKLONI OVO ODAVDE
     AdminPanelComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     FormsModule,
-    HttpClientModule
+    HttpClientModule,
+    Favorites // DODAJ OVDE
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }

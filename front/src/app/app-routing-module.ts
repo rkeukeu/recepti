@@ -6,7 +6,7 @@ import { RecipeList } from './components/recipe-list/recipe-list';
 import { RecipeAdd } from './components/recipe-add/recipe-add';
 import { RecipeDetails } from './components/recipe-details/recipe-details';
 import { Profile } from './components/profile/profile';
-import { Favorites } from './pages/favorites/favorites';
+import { Favorites } from './pages/favorites/favorites'; // BITNO
 import { AdminPanelComponent } from './components/admin-panel/admin-panel.component';
 
 const routes: Routes = [
@@ -16,10 +16,10 @@ const routes: Routes = [
   { path: 'recepti/:id', component: RecipeDetails },
   { path: 'dodaj-recept', component: RecipeAdd },
   { path: 'moj-profil', component: Profile },
-  { path: 'favorites', component: Favorites },
-  { path: 'admin', component: AdminPanelComponent }, // OVO PREMESTI IZNAD **
+  { path: 'favorites', component: Favorites }, // BITNO: OVO JE TU
+  { path: 'admin', component: AdminPanelComponent },
   { path: '', redirectTo: '/recepti', pathMatch: 'full' },
-  { path: '**', redirectTo: '/recepti' }, // Wildcard MORA BITI POSLEDNJI
+  { path: '**', redirectTo: '/recepti' }, // OVO POSLEDNJE
 ];
 
 @NgModule({
