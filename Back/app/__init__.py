@@ -11,6 +11,7 @@ from datetime import timedelta
 
 load_dotenv()
 db = SQLAlchemy()
+<<<<<<< Updated upstream
 socketio = SocketIO(
     cors_allowed_origins="*",  # Dozvoli sve za test
     logger=True, 
@@ -18,6 +19,9 @@ socketio = SocketIO(
     async_mode='threading',
     transports=['polling', 'websocket']  # Prvo pokušaj polling
 )
+=======
+socketio = SocketIO(cors_allowed_origins="*")
+>>>>>>> Stashed changes
 mail = Mail()
 
 def create_app():
@@ -73,6 +77,7 @@ def create_app():
         from .models import User, Recipe
         db.create_all()
         
+<<<<<<< Updated upstream
     @socketio.on('connect')
     def handle_connect():
         print('🔌 Client connected to Socket.IO')
@@ -80,4 +85,6 @@ def create_app():
     @socketio.on('disconnect')
     def handle_disconnect():
         print('🔌 Client disconnected from Socket.IO')
+=======
+>>>>>>> Stashed changes
     return app

@@ -1,3 +1,24 @@
+<!-- DEBUG PANEL (možete obrisati kasnije) -->
+<div class="alert alert-info mb-3">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <strong>Debug info:</strong>
+      <button (click)="testAuth()" class="btn btn-sm btn-warning ms-2">
+        🔍 Testiraj autentifikaciju
+      </button>
+    </div>
+    <div>
+      <button (click)="proveriToken()" class="btn btn-sm btn-secondary">
+        🔑 Proveri token
+      </button>
+      <button (click)="testRuta()" class="btn btn-sm btn-primary ms-2">
+        🧪 Testiraj rute
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Ostatak vašeg HTML-a... -->
 <div class="container mt-4" *ngIf="!ucitavanje; else loading">
     <h2 class="mb-4">📊 Administratorski Panel</h2>
   
@@ -93,11 +114,25 @@
   
     <!-- Top 5 autora -->
     <div class="card shadow mb-4">
+     <!-- U header-u Top 5 autora karte: -->
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">🏆 Top 5 autora (po prosečnoj oceni)</h5>
-        <button (click)="preuzmiIzvestaj()" class="btn btn-danger btn-sm">
-          📥 Preuzmi PDF izveštaj
-        </button>
+          <button (click)="preuzmiIzvestaj()" 
+            [disabled]="generiseSePDF"
+            class="btn btn-danger btn-sm d-flex align-items-center gap-2">
+    
+    <span *ngIf="!generiseSePDF">
+      <i class="bi bi-file-earmark-pdf"></i> Preuzmi PDF izveštaj
+    </span>
+    
+    <span *ngIf="generiseSePDF" class="d-flex align-items-center gap-2">
+      <div class="spinner-border spinner-border-sm text-white" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      Generiše se...
+    </span>
+  </button>
+</div>
       </div>
       <div class="card-body">
         <div *ngIf="topAutori.length === 0" class="text-center text-muted">
@@ -117,6 +152,40 @@
       </div>
     </div>
   
+<div *ngIf="pdfPoruka" class="alert mt-3 mb-4" 
+     [class.alert-success]="pdfStatus === 'success'" 
+     [class.alert-danger]="pdfStatus === 'error'">
+  
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <i class="bi" 
+         [class.bi-check-circle-fill]="pdfStatus === 'success'"
+         [class.bi-exclamation-circle-fill]="pdfStatus === 'error'"></i>
+      {{ pdfPoruka }}
+    </div>
+    
+    <div *ngIf="poslednjiPDFurl && pdfStatus === 'success'">
+      <a [href]="poslednjiPDFurl" target="_blank" class="btn btn-sm btn-primary ms-3">
+        <i class="bi bi-file-earmark-pdf"></i> Otvori PDF
+      </a>
+      <button (click)="preuzmiIzvestaj()" class="btn btn-sm btn-success ms-2">
+        <i class="bi bi-arrow-clockwise"></i> Ponovi
+      </button>
+    </div>
+  </div>
+  
+  <!-- Progress bar za generisanje -->
+  <div *ngIf="generiseSePDF" class="mt-2">
+    <div class="progress" style="height: 6px;">
+      <div class="progress-bar progress-bar-striped progress-bar-animated" 
+           role="progressbar" style="width: 100%"></div>
+    </div>
+    <small class="text-muted">
+      <i class="bi bi-hourglass-split"></i> Generiše se PDF izveštaj...
+    </small>
+  </div>
+</div>
+
     <!-- Lista svih korisnika -->
     <div class="card shadow">
       <div class="card-header">
@@ -167,7 +236,10 @@
         </div>
       </div>
     </div>
+<<<<<<< Updated upstream
   </div>
+=======
+>>>>>>> Stashed changes
   
   <ng-template #loading>
     <div class="text-center mt-5">
