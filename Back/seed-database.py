@@ -42,7 +42,7 @@ def seed_database():
             lozinka=bcrypt.hashpw('citalac123'.encode(), bcrypt.gensalt()).decode(),
             ime='Petar',
             prezime='Čitalac',
-            uloga='čitalac'
+            uloga='citalac'
         )
         
         db.session.add_all([admin, autor, citalac])

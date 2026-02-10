@@ -17,7 +17,7 @@ class User(db.Model):
     drzava = db.Column(db.String(50))
     ulica = db.Column(db.String(100))
     broj = db.Column(db.String(10))
-    uloga = db.Column(db.String(20), default='čitalac') # čitalac, autor, administrator
+    uloga = db.Column(db.String(20), default='citalac') # čitalac, autor, administrator
     slika_profila = db.Column(db.String(255))
     datum_pridruzivanja = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -55,3 +55,14 @@ class Rating(db.Model):
     vrednost = db.Column(db.Integer) # 1-5
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id'))
+    
+class ZahtevZaAutora(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    status = db.Column(db.String(20), default='pending')  # pending, approved, rejected
+    razlog_odbijanja = db.Column(db.Text)
+    datum_zahteva = db.Column(db.DateTime, default=datetime.utcnow)
+    datum_odluke = db.Column(db.DateTime)
+    
+    # Relacija
+    korisnik = db.relationship('User', backref=db.backref('zahtevi_za_autora', lazy=True))    

@@ -36,7 +36,7 @@ export class Profile implements OnInit {
       const token = localStorage.getItem('token');
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
       
-      this.http.post('http://127.0.0.1:5000/auth/postani-autor', {}, { headers })
+      this.http.post('http://127.0.0.1:5000/postani-autor', {}, { headers })
         .subscribe({
           next: (res: any) => {
             alert(res.msg || 'Zahtev poslat administratoru!');

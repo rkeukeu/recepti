@@ -1,3 +1,4 @@
+from .email_service import EmailService
 from flask import Blueprint, request, jsonify, current_app
 from .models import db, Recipe, User, Comment, Rating
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -123,10 +124,39 @@ def ostavi_interakciju(id):
             ime_autora_komentara=f"{user.ime} {user.prezime}"
         )
         db.session.add(novi_komentar)
+        
+        # ========== EMAIL AUTORU O KOMENTARU ==========
+        try:
+            # Pronađi autorov email
+            recept = Recipe.query.get(id)
+            autor = User.query.get(recept.autor_id)
+            
+            if autor and autor.email != user.email:  # Ne šalji email samom sebi
+                EmailService.send(
+                    to_email=autor.email,
+                    subject=f"💬 Novi komentar na vaš recept '{recept.naslov}'",
+                    body=f"""Poštovani {autor.ime},
+
+Korisnik {user.ime} {user.prezime} je ostavio komentar na vaš recept:
+
+🍽️ Recept: {recept.naslov}
+👤 Korisnik: {user.ime} {user.prezime}
+💬 Komentar: {tekst_komentara}
+
+🔗 Pogledajte komentar: http://localhost:4200/recepti/{id}
+
+Srdačno,
+Tim Recepti platforme""",
+                    email_type='comment_notification'
+                )
+                
+        except Exception as e:
+            print(f"⚠️ Email za komentar nije 'poslat': {e}")
+        # ========== KRAJ EMAILA ==========
 
     db.session.commit()
     return jsonify({"msg": "Uspešno sačuvano!"}), 201
-
+    
 # --- OMILJENI RECEPTI (TOGGLE) ---
 @recipe_bp.route('/<int:id>/omiljeni', methods=['POST'])
 @jwt_required()

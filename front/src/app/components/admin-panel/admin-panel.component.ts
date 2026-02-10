@@ -1,20 +1,28 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common'; // DODAJTE
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../services/admin.service';
 import { SocketService } from '../../services/socket.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'app-admin-panel',
-  standalone: true, // OVO OSTAVITE
-  imports: [CommonModule], // KLJUČNO!
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule
+  ],
   templateUrl: './admin-panel.component.html'
 })
 export class AdminPanelComponent implements OnInit, OnDestroy {
   korisnici: any[] = [];
   statistika: any = {};
   topAutori: any[] = [];
-  noviZahtevi: any[] = [];
+  zahtevi: any[] = [];  // ✅ DODAJ OVO!
+  emailLogs: any[] = [];
+  emailStats: any = {};
   ucitavanje = true;
 
   constructor(
@@ -24,65 +32,124 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    console.log('🎯 AdminPanel: ngOnInit started');
     this.ucitajPodatke();
-    this.pretplatiNaZahteve();
+    this.ucitajZahteve();  // ✅ PROMENI OVO umesto pretplatiNaZahteve()
+    this.loadEmailLogs();
+    
+    // Socket.IO subscription
+    this.socketService.onNoviZahtev((zahtev: any) => {
+      console.log('📨 Real-time zahtev:', zahtev);
+      this.zahtevi.unshift(zahtev); // Dodaj na početak
+      alert(`🆕 Novi zahtev za autora:\n${zahtev.ime}\n${zahtev.email}`);
+    });
   }
 
   ngOnDestroy(): void {
     this.socketService.disconnect();
   }
 
-  pretplatiNaZahteve(): void {
-    console.log('🎯 AdminPanel: pretplatiNaZahteve() called');
-    
-    this.socketService.onNoviZahtev((zahtev: any) => {
-      console.log('🎯 AdminPanel: NOVI ZAHTEV PRIMLJEN!', zahtev);
-      
-      this.noviZahtevi.unshift(zahtev);
-      alert(`🆕 Novi zahtev za autora:\n${zahtev.ime}\n${zahtev.email}`);
+  loadEmailLogs(): void {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  
+    this.http.get('http://localhost:5000/auth/admin/email-logs', { headers })
+    .subscribe({
+      next: (data: any) => {
+        this.emailLogs = data.logs || [];
+        this.emailStats = data.stats || {};
+      },
+      error: (err: any) => {
+        console.error('Greška pri učitavanju email logova', err);
+      }
     });
   }
 
-  loadPendingZahtevi(): void {
-    setInterval(() => {
-      this.http.get('http://localhost:5000/auth/admin/pending-zahtevi', {
-        headers: new HttpHeaders().set('Authorization', `Bearer ${localStorage.getItem('token')}`)
-      }).subscribe({
+  ucitajZahteve(): void {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    
+    this.http.get('http://localhost:5000/auth/admin/zahtevi-za-autore', { headers })
+      .subscribe({
         next: (data: any) => {
-          this.noviZahtevi = data;
+          this.zahtevi = data;
+          console.log('✅ Učitano zahteva:', this.zahtevi.length);
+        },
+        error: (err) => {
+          console.error('Greška pri učitavanju zahteva:', err);
+          // Ako endpoint ne postoji, koristi stari
+          this.http.get('http://localhost:5000/auth/admin/pending-requests', { headers })
+            .subscribe({
+              next: (oldData: any) => {
+                this.zahtevi = oldData;
+                console.log('✅ Učitano starih zahteva:', this.zahtevi.length);
+              },
+              error: () => {
+                this.zahtevi = [];
+              }
+            });
         }
       });
-    }, 5000);
   }
 
-  odobriAutora(userId: number, email: string): void {
-    if (confirm(`Odobriti korisnika ${email} kao autora?`)) {
+  odobriZahtev(zahtevId: number, email: string): void {
+    if (confirm(`Odobriti zahtev korisnika ${email}?`)) {
       const token = localStorage.getItem('token');
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
       
-      this.http.post(
-        `http://localhost:5000/auth/admin/odobri-autora/${userId}`, 
-        {}, 
-        { headers }
-      ).subscribe({
-        next: (res: any) => {
-          alert(res.msg || 'Korisnik odobren kao autor!');
-          
-          this.noviZahtevi = this.noviZahtevi.filter(z => z.user_id !== userId);
-          this.ucitajPodatke();
-        },
-        error: (err: any) => {
-          alert(err.error?.msg || 'Greška pri odobravanju');
-        }
-      });
+      // Prvo probaj novi endpoint
+      this.http.post(`http://localhost:5000/auth/admin/odobri-zahtev/${zahtevId}`, {}, { headers })
+        .subscribe({
+          next: (res: any) => {
+            alert('✅ ' + res.msg);
+            this.zahtevi = this.zahtevi.filter(z => z.zahtev_id !== zahtevId);
+          },
+          error: (err) => {
+            // Ako ne radi novi, probaj stari
+            this.http.post(`http://localhost:5000/auth/admin/odobri-autora/${zahtevId}`, {}, { headers })
+              .subscribe({
+                next: (res2: any) => {
+                  alert('✅ ' + res2.msg);
+                  this.zahtevi = this.zahtevi.filter(z => z.user_id !== zahtevId);
+                },
+                error: (err2) => alert('❌ ' + (err2.error?.msg || 'Greška'))
+              });
+          }
+        });
     }
   }
 
-  odbijZahtev(userId: number, email: string): void {
-    const razlog = prompt(`Unesite razlog odbijanja zahteva za ${email}:`);
-    if (razlog) {
-      alert(`Zahtev odbijen. Razlog: ${razlog}`);
-      this.noviZahtevi = this.noviZahtevi.filter(z => z.user_id !== userId);
+  odbijZahtev(zahtevId: number, email: string): void {
+    const razlog = prompt(`Unesite razlog odbijanja za ${email}:`);
+    
+    if (razlog && razlog.trim()) {
+      const token = localStorage.getItem('token');
+      const headers = new HttpHeaders()
+        .set('Authorization', `Bearer ${token}`)
+        .set('Content-Type', 'application/json');
+      
+      this.http.post(`http://localhost:5000/auth/admin/odbij-zahtev/${zahtevId}`, 
+        { razlog: razlog }, 
+        { headers }
+      ).subscribe({
+        next: (res: any) => {
+          alert('✅ ' + res.msg);
+          this.zahtevi = this.zahtevi.filter(z => z.zahtev_id !== zahtevId);
+        },
+        error: (err) => {
+          // Ako ne radi novi, probaj stari
+          this.http.post(`http://localhost:5000/auth/admin/odbij-autora/${zahtevId}`, 
+            { razlog: razlog }, 
+            { headers }
+          ).subscribe({
+            next: (res2: any) => {
+              alert('✅ ' + res2.msg);
+              this.zahtevi = this.zahtevi.filter(z => z.user_id !== zahtevId);
+            },
+            error: (err2) => alert('❌ ' + (err2.error?.msg || 'Greška'))
+          });
+        }
+      });
     }
   }
 
@@ -131,20 +198,15 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
 
   preuzmiIzvestaj(): void {
     this.adminService.generisiIzvestaj().subscribe({
-      next: (blob: any) => {
+      next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `izvestaj-top-autori-${new Date().toISOString().split('T')[0]}.pdf`;
-        document.body.appendChild(a);
+        a.download = `izvestaj-${new Date().toISOString().split('T')[0]}.pdf`;
         a.click();
-        document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       },
-      error: (err: any) => {
-        alert('Greška pri generisanju PDF izveštaja');
-        console.error(err);
-      }
+      error: (err) => console.error('Greška pri preuzimanju PDF', err)
     });
   }
 }

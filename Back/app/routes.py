@@ -1,6 +1,7 @@
+from .email_service import EmailService
 from .models import Recipe
 import json
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, send_from_directory
 from .models import db, User
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_mail import Message
@@ -41,7 +42,7 @@ def register():
         drzava=data.get('drzava'),
         ulica=data.get('ulica'),
         broj=data.get('broj'),
-        uloga='čitalac' 
+        uloga='citalac' 
     )
 
     db.session.add(novi_korisnik)
@@ -78,59 +79,216 @@ def login():
     token = create_access_token(identity=str(user.id), additional_claims={"uloga": user.uloga})
     return jsonify({"token": token, "uloga": user.uloga}), 200
 
-# --- ZAHTEV ZA AUTORA (Real-time obaveštenje) ---
-@auth_bp.route('/postani-autor', methods=['POST'])
+@auth_bp.route('/postani-autor', methods=['OPTIONS', 'POST'])
 @jwt_required()
 def zatrazi_ulogu_autora():
+    """Pošalji zahtev da postaneš autor"""
+    # OPTIONS handler
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:4200')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        return response, 200
+    
+    # POST handler
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
     
-    if user.uloga == 'autor':
+    if not user:
+        return jsonify({"msg": "Korisnik nije pronađen"}), 404
+    
+    # Proveri da li je već autor/admin
+    if user.uloga in ['autor', 'administrator']:
         return jsonify({"msg": "Već ste autor"}), 400
+    
+    # Proveri da li već ima pending zahtev
+    existing_request = ZahtevZaAutora.query.filter_by(
+        user_id=user.id, 
+        status='pending'
+    ).first()
+    
+    if existing_request:
+        return jsonify({"msg": "Već ste poslali zahtev"}), 400
+    
+    # Kreiraj novi zahtev
+    novi_zahtev = ZahtevZaAutora(
+        user_id=user.id,
+        status='pending',
+        datum_zahteva=datetime.utcnow()
+    )
+    
+    db.session.add(novi_zahtev)
+    db.session.commit()
+    
+    print(f'🔔 Kreiran zahtev za autora: {user.email}')
+    
+    # Emituj Socket.IO event
+    try:
+        socketio.emit('novi_zahtev', {
+            'id': novi_zahtev.id,
+            'user_id': user.id,
+            'ime': f"{user.ime} {user.prezime}",
+            'email': user.email,
+            'datum_zahteva': novi_zahtev.datum_zahteva.isoformat(),
+            'status': 'pending'
+        })
+        print('✅ Socket event emitted')
+    except Exception as e:
+        print(f'⚠️ Socket error: {e}')
+    
+    return jsonify({"msg": "Zahtev za autorstvo je poslat administratorima!"}), 201
 
-    print(f"🔔 DEBUG: Emitting socket event for user {user.id}")
-    print(f"🔔 DEBUG: User data: {user.ime} {user.prezime}, {user.email}")
-    
-    # EMITUJ SA BROADCAST
-    socketio.emit('novi_zahtev', {
-        'ime': f"{user.ime} {user.prezime}",
-        'email': user.email,
-        'user_id': user.id,
-        'timestamp': datetime.utcnow().isoformat()
-    }, broadcast=True, namespace='/')  # DODAJ broadcast=True
-    
-    print("✅ DEBUG: Socket event emitted with broadcast")
-    
-    return jsonify({"msg": "Zahtev poslat administratoru!"}), 200
-
-# --- ADMIN ODOBRAVANJE (Slanje mejla) ---
-@auth_bp.route('/admin/odobri-autora/<int:target_id>', methods=['POST'])
+@auth_bp.route('/admin/zahtevi-za-autore', methods=['GET'])
 @jwt_required()
-def odobri_autora(target_id):
+def get_svi_zahtevi():
+    """Vrati sve zahteve za autore"""
+    admin_id = get_jwt_identity()
+    admin = User.query.get(admin_id)
+    
+    if not admin or admin.uloga != 'administrator':
+        return jsonify({"msg": "Samo administrator"}), 403
+    
+    zahtevi = ZahtevZaAutora.query.filter_by(status='pending').all()
+    
+    result = []
+    for zahtev in zahtevi:
+        user = User.query.get(zahtev.user_id)
+        result.append({
+            'zahtev_id': zahtev.id,
+            'user_id': user.id,
+            'ime': f"{user.ime} {user.prezime}",
+            'email': user.email,
+            'datum_rodjenja': str(user.datum_rodjenja) if user.datum_rodjenja else None,
+            'drzava': user.drzava,
+            'datum_zahteva': zahtev.datum_zahteva.strftime("%d.%m.%Y. %H:%M"),
+            'status': zahtev.status
+        })
+    
+    return jsonify(result), 200
+
+# --- ADMIN: ODOBRI ZAHTEV ---
+@auth_bp.route('/admin/odobri-zahtev/<int:zahtev_id>', methods=['POST'])
+@jwt_required()
+def odobri_zahtev_za_autora(zahtev_id):
+    """Odobri zahtev za autora"""
+    admin_id = get_jwt_identity()
+    admin = User.query.get(admin_id)
+    
+    if not admin or admin.uloga != 'administrator':
+        return jsonify({"msg": "Samo administrator"}), 403
+    
+    zahtev = ZahtevZaAutora.query.get_or_404(zahtev_id)
+    user = User.query.get(zahtev.user_id)
+    
+    if not user:
+        return jsonify({"msg": "Korisnik nije pronađen"}), 404
+    
+    # Promeni ulogu
+    user.uloga = 'autor'
+    zahtev.status = 'approved'
+    zahtev.datum_odluke = datetime.utcnow()
+    
+    db.session.commit()
+    
+    # Pošalji email
+    EmailService.send(
+        to_email=user.email,
+        subject="🎉 Čestitamo! Vaš zahtev za autora je odobren",
+        body=f"""Poštovani {user.ime} {user.prezime},
+
+Vaš zahtev za autorstvo na Recepti platformi je ODOBREN!
+
+Sada možete:
+✅ Postavljati sopstvene recepte
+✅ Primati komentare i ocene
+✅ Vaši recepti će biti vidljivi svim korisnicima
+
+Prijavite se na: http://localhost:4200
+
+Srdačno,
+Administratorski tim""",
+        email_type='author_approved'
+    )
+    
+    return jsonify({
+        "msg": f"Zahtev odobren! {user.email} je sada autor.",
+        "user_id": user.id
+    }), 200
+
+# --- ADMIN: ODBIJ ZAHTEV ---
+@auth_bp.route('/admin/odbij-zahtev/<int:zahtev_id>', methods=['POST'])
+@jwt_required()
+def odbij_zahtev_za_autora(zahtev_id):
+    """Odbij zahtev za autora sa razlogom"""
+    admin_id = get_jwt_identity()
+    admin = User.query.get(admin_id)
+    
+    if not admin or admin.uloga != 'administrator':
+        return jsonify({"msg": "Samo administrator"}), 403
+    
+    zahtev = ZahtevZaAutora.query.get_or_404(zahtev_id)
+    user = User.query.get(zahtev.user_id)
+    
+    if not user:
+        return jsonify({"msg": "Korisnik nije pronađen"}), 404
+    
+    data = request.get_json()
+    if not data or 'razlog' not in data:
+        return jsonify({"msg": "Morate navesti razlog odbijanja"}), 400
+    
+    razlog = data['razlog']
+    
+    # Ažuriraj zahtev
+    zahtev.status = 'rejected'
+    zahtev.razlog_odbijanja = razlog
+    zahtev.datum_odluke = datetime.utcnow()
+    
+    db.session.commit()
+    
+    # Pošalji email
+    EmailService.send(
+        to_email=user.email,
+        subject="📝 Odgovor na vaš zahtev za autora",
+        body=f"""Poštovani {user.ime} {user.prezime},
+
+Žao nam je da vas obavestimo da vaš zahtev za autorstvo na Recepti platformi NIJE ODOBREN.
+
+📋 Razlog odbijanja:
+{razlog}
+
+ℹ️ Šta možete uraditi?
+- Možete ponovo poslati zahtev nakon što ispunite nedostajuće uslove
+- Možete kontaktirati administratora za dodatna pojašnjenja
+
+Srdačno,
+Administratorski tim""",
+        email_type='author_rejected'
+    )
+    
+    return jsonify({
+        "msg": f"Zahtev odbijen. Email sa razlogom poslat korisniku {user.email}.",
+        "user_id": user.id
+    }), 200
+
+@auth_bp.route('/admin/email-logs', methods=['GET'])
+@jwt_required()
+def get_email_logs():
+    """Vrati sve email logove (samo admin)"""
     admin_id = get_jwt_identity()
     admin = User.query.get(admin_id)
     
     if admin.uloga != 'administrator':
-        return jsonify({"msg": "Samo administrator može da odobrava uloge."}), 403
-
-    user = User.query.get(target_id)
-    if not user:
-        return jsonify({"msg": "Korisnik nije nađen"}), 404
-
-    user.uloga = 'autor'
-    db.session.commit()
-
-    try:
-        msg = Message("Odobren zahtev za autora",
-                      sender=current_app.config['MAIL_USERNAME'],
-                      recipients=[user.email])
-        msg.body = f"Zdravo {user.ime}, Vaš zahtev je odobren. Sada možete postavljati recepte!"
-        mail.send(msg)
-    except Exception as e:
-        print(f"Mejl nije poslat: {e}")
-
-    return jsonify({"msg": f"Korisnik {user.email} je sada autor."}), 200
-
+        return jsonify({"msg": "Samo administrator"}), 403
+    
+    logs = EmailService.get_logs()
+    stats = EmailService.get_stats()
+    
+    return jsonify({
+        'stats': stats,
+        'logs': logs,
+        'count': len(logs)
+    }), 200
 
 # --- PROFIL: PREUZIMANJE PODATAKA ---
 @auth_bp.route('/moj-profil', methods=['GET'])
@@ -188,6 +346,7 @@ def update_profile():
         db.session.rollback()
         return jsonify({"msg": "Greška pri čuvanju podataka", "error": str(e)}), 500
     
+# --- OMILJENI RECEPTI ---    
 @auth_bp.route("/favorites/<int:recipe_id>", methods=["POST"])
 @jwt_required()
 def add_favorite(recipe_id):
@@ -304,7 +463,7 @@ def get_statistics():
     
     ukupno_korisnika = User.query.count()
     ukupno_autora = User.query.filter_by(uloga='autor').count()
-    ukupno_citalaca = User.query.filter_by(uloga='čitalac').count()
+    ukupno_citalaca = User.query.filter_by(uloga='citalac').count()
     ukupno_administratora = User.query.filter_by(uloga='administrator').count()
     ukupno_recepata = Recipe.query.count()
     
