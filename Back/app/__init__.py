@@ -60,6 +60,9 @@ def create_app():
     from .recipe_routes import recipe_bp
     app.register_blueprint(recipe_bp, url_prefix='/recepti')
 
+    from .admin_routes import admin_bp
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+
     with app.app_context():
         from .models import User, Recipe
         db.create_all()
