@@ -32,25 +32,19 @@ export class Profile implements OnInit {
 
   // DODAJ OVU METODU:
   zatraziUloguAutora() {
-  if (confirm('Da li želite da postanete autor?\n\nMoći ćete da:\n• Postavljate recepte\n• Primajte komentare\n• Budete vidljivi drugim korisnicima')) {
-    
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
-    
-    this.http.post('http://localhost:5000/auth/postani-autor', {}, { headers })
-      .subscribe({
-        next: (res: any) => {
-          alert('✅ ' + res.msg);
-          console.log('Zahtev uspešan:', res);
-        },
-        error: (err: any) => {
-          console.error('Greška:', err);
-          alert('❌ ' + (err.error?.msg || 'Greška pri slanju zahteva'));
-        }
-      });
+    if (confirm('Da li želite da pošaljete zahtev za autora?')) {
+      const token = localStorage.getItem('token');
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      
+      this.http.post('http://127.0.0.1:5000/postani-autor', {}, { headers })
+        .subscribe({
+          next: (res: any) => {
+            alert(res.msg || 'Zahtev poslat administratoru!');
+          },
+          error: (err: any) => {
+            alert(err.error?.msg || 'Greška pri slanju zahteva');
+          }
+        });
+    }
   }
-}
 }

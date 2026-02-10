@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root' 
+  providedIn: 'root'
 })
 export class AdminService {
   private apiUrl = 'http://127.0.0.1:5000/auth/admin';

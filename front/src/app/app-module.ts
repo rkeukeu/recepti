@@ -36,7 +36,8 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     FormsModule,
     HttpClientModule,
     CommonModule,
-    RecipeDetails,
+    RecipeDetails, // standalone
+    AdminPanelComponent // DODAJTE OVDE - standalone
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
