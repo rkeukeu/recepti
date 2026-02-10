@@ -37,10 +37,10 @@ export class AdminService {
 
   // Generiši PDF izveštaj
   generisiIzvestaj(): Observable<Blob> {
-  const headers = this.getHeaders().set('Accept', 'application/pdf');
-  return this.http.get('http://localhost:5000/admin/generisi-izvestaj', { 
-    headers: headers, 
-    responseType: 'blob' 
-  });
-}
+    const headers = this.getHeaders().set('Accept', 'application/pdf');
+    return this.http.get(`${this.apiUrl}/generisi-pdf`, { 
+      headers: headers, 
+      responseType: 'blob' 
+    });
+  }
 }
