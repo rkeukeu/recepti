@@ -11,7 +11,13 @@ from datetime import timedelta
 
 load_dotenv()
 db = SQLAlchemy()
-socketio = SocketIO(cors_allowed_origins="*")
+socketio = SocketIO(
+    cors_allowed_origins="*",  # Dozvoli sve za test
+    logger=True, 
+    engineio_logger=True,
+    async_mode='threading',
+    transports=['polling', 'websocket']  # Prvo pokušaj polling
+)
 mail = Mail()
 
 def create_app():
@@ -67,4 +73,11 @@ def create_app():
         from .models import User, Recipe
         db.create_all()
         
+    @socketio.on('connect')
+    def handle_connect():
+        print('🔌 Client connected to Socket.IO')
+    
+    @socketio.on('disconnect')
+    def handle_disconnect():
+        print('🔌 Client disconnected from Socket.IO')
     return app

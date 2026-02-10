@@ -1,8 +1,9 @@
+// app-module.ts
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { CommonModule } from '@angular/common';  // DODAJ OVO
+import { CommonModule } from '@angular/common';
 
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
@@ -26,15 +27,17 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     RecipeList,
     RecipeAdd,
     Profile,
-    AdminPanelComponent
+    // NE stavljajte AdminPanelComponent ovde - jer je standalone
+    // NE stavljajte RecipeDetails ovde - jer je standalone
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     FormsModule,
     HttpClientModule,
-	RecipeDetails,
-    CommonModule  // DODAJ OVO
+    CommonModule,
+    RecipeDetails, // standalone
+    AdminPanelComponent // DODAJTE OVDE - standalone
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }

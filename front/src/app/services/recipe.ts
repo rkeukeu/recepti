@@ -45,4 +45,10 @@ export class Recipe {
   toggleOmiljeni(id: number) {
     return this.http.post(`http://127.0.0.1:5000/recepti/${id}/omiljeni`, {});
   }
+  
+  getOmiljeni(): Observable<any[]> {
+	const headers = this.getHeaders();
+  // Koristi isti endpoint kao u recipe_routes.py: /recepti/omiljeni
+	return this.http.get<any[]>('http://127.0.0.1:5000/recepti/omiljeni', { headers });
+  }
 }

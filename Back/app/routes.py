@@ -88,11 +88,19 @@ def zatrazi_ulogu_autora():
     if user.uloga == 'autor':
         return jsonify({"msg": "Već ste autor"}), 400
 
+    print(f"🔔 DEBUG: Emitting socket event for user {user.id}")
+    print(f"🔔 DEBUG: User data: {user.ime} {user.prezime}, {user.email}")
+    
+    # EMITUJ SA BROADCAST
     socketio.emit('novi_zahtev', {
         'ime': f"{user.ime} {user.prezime}",
         'email': user.email,
-        'user_id': user.id
-    })
+        'user_id': user.id,
+        'timestamp': datetime.utcnow().isoformat()
+    }, broadcast=True, namespace='/')  # DODAJ broadcast=True
+    
+    print("✅ DEBUG: Socket event emitted with broadcast")
+    
     return jsonify({"msg": "Zahtev poslat administratoru!"}), 200
 
 # --- ADMIN ODOBRAVANJE (Slanje mejla) ---
