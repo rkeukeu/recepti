@@ -397,3 +397,57 @@ def upload_image():
 def serve_uploaded_file(filename):
     """Serviraj uploadovane fajlove"""
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+    
+# --- PROFIL AUTORA (DODAJ OVU RUTU) ---
+@auth_bp.route('/autor/<int:autor_id>', methods=['GET'])
+@jwt_required(optional=True)  # Dozvoli i neulogovanim korisnicima
+def get_autor_profile(autor_id):
+    autor = User.query.get_or_404(autor_id)
+    
+    if autor.uloga not in ['autor', 'administrator']:
+        return jsonify({"msg": "Korisnik nije autor"}), 400
+    
+    # Računanje prosečne ocene svih recepata autora
+    sve_ocene = []
+    ukupno_komentara = 0
+    
+    for recept in autor.objavljeni_recepti:
+        sve_ocene.extend([o.vrednost for o in recept.ocene])
+        ukupno_komentara += len(recept.komentari)
+    
+    prosecna_ocena_autora = sum(sve_ocene) / len(sve_ocene) if sve_ocene else 0
+    
+    # Priprema podataka o receptima autora
+    recepti_autora = []
+    for recept in autor.objavljeni_recepti:
+        ocene_recepta = [o.vrednost for o in recept.ocene]
+        recepti_autora.append({
+            "id": recept.id,
+            "naslov": recept.naslov,
+            "tip_jela": recept.tip_jela,
+            "vreme": recept.vreme_pripreme,
+            "tezina": recept.tezina,
+            "slika": recept.slika,
+            "datum_objave": recept.datum_objave.strftime("%d.%m.%Y.") if hasattr(recept, 'datum_objave') else None,
+            "prosecna_ocena": sum(ocene_recepta) / len(ocene_recepta) if ocene_recepta else 0,
+            "broj_ocena": len(ocene_recepta),
+            "broj_komentara": len(recept.komentari)
+        })
+    
+    return jsonify({
+        "id": autor.id,
+        "ime": autor.ime,
+        "prezime": autor.prezime,
+        "email": autor.email,
+        "uloga": autor.uloga,
+        "slika_profila": autor.slika_profila,
+        "drzava": autor.drzava,
+        "pol": autor.pol,
+        "datum_pridruzivanja": autor.datum_pridruzivanja.strftime("%d.%m.%Y.") if autor.datum_pridruzivanja else None,
+        "broj_recepata": len(autor.objavljeni_recepti),
+        "prosecna_ocena": round(prosecna_ocena_autora, 2),
+        "ukupno_ocena": len(sve_ocene),
+        "ukupno_komentara": ukupno_komentara,
+        "recepti": recepti_autora,
+        "datum_rodjenja": str(autor.datum_rodjenja) if autor.datum_rodjenja else None
+    }), 200

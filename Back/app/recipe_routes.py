@@ -62,6 +62,7 @@ def preuzmi_recept(id):
         "slika": r.slika,
         "oznake": r.oznake,
         "autor": f"{r.autor.ime} {r.autor.prezime}",
+        "autor_id": r.autor_id,
         "prosecna_ocena": round(prosek, 1),
         "broj_ocena": len(sve_ocene),
         "komentari": [{
@@ -92,7 +93,8 @@ def pretrazi_recepte():
             "vreme": r.vreme_pripreme,
             "tezina": r.tezina,
             "slika": r.slika,
-            "autor": f"{r.autor.ime} {r.autor.prezime}"
+            "autor": f"{r.autor.ime} {r.autor.prezime}",
+            "autor_id": r.autor_id
         })
 
     current_app.redis.setex(kljuc_kesa, 300, json.dumps(rezultati))

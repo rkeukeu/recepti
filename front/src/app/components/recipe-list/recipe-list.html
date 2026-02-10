@@ -12,28 +12,31 @@
   </div>
 
   <div class="row">
-    <div class="col-md-4 mb-4" *ngFor="let r of recepti">
+    <div class="col-md-4 mb-4" *ngFor="let recept of recepti">
       <div class="card h-100 shadow-sm">
         <div class="card-body">
-          <h5 class="card-title">{{ r.naslov }}</h5>
+          <h5 class="card-title">{{ recept.naslov }}</h5>
           <p class="card-text text-muted">
-            <i class="bi bi-clock"></i> {{ r.vreme }} min |
-            <i class="bi bi-person"></i> {{ r.autor }}
+            <i class="bi bi-clock"></i> {{ recept.vreme }} min |
+            <i class="bi bi-person"></i> 
+            <a [routerLink]="['/autor', recept.autor_id]" class="text-decoration-none">
+              {{ recept.autor }}
+            </a>
           </p>
-          <div class="badge bg-info mb-3">{{ r.tezina || 'Srednje' }}</div>
+          <div class="badge bg-info mb-3">{{ recept.tezina || 'Srednje' }}</div>
         </div>
         <div
           class="card-footer bg-transparent border-top-0 d-flex justify-content-between"
         >
           <button
-            [routerLink]="['/recepti', r.id]"
+            [routerLink]="['/recepti', recept.id]"
             class="btn btn-outline-primary btn-sm"
           >
             Pogledaj
           </button>
           <button
             *ngIf="auth.uloga === 'administrator'"
-            (click)="obrisi(r.id); $event.stopPropagation()"
+            (click)="obrisi(recept.id); $event.stopPropagation()"
             class="btn btn-outline-danger btn-sm"
           >
             Obriši

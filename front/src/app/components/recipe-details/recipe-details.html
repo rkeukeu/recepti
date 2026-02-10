@@ -26,7 +26,12 @@
           >
         </div>
         <hr />
-        <p><strong>👨‍🍳 Autor:</strong> {{ recept.autor }}</p>
+        <p>
+          <strong>👨‍🍳 Autor:</strong> 
+          <a [routerLink]="['/autor', recept.autor_id]" class="text-decoration-none text-primary">
+            {{ recept.autor }}
+          </a>
+        </p>
         <p><strong>🕒 Vreme:</strong> {{ recept.vreme }} min</p>
         <p>
           <strong>⚖️ Težina:</strong>

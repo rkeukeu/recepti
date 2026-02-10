@@ -37,9 +37,9 @@ class Recipe(db.Model):
     slika = db.Column(db.String(255))
     oznake = db.Column(db.String(255)) # npr. vegan, jeftino
     autor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
     komentari = db.relationship('Comment', backref='recept', cascade="all, delete-orphan")
     ocene = db.relationship('Rating', backref='recept', cascade="all, delete-orphan")
+    datum_objave = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -1,0 +1,25 @@
+.stat-card {
+  padding: 15px;
+  border-radius: 10px;
+  background: #f8f9fa;
+  transition: transform 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  background: #e9ecef;
+}
+
+.hover-card {
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+.badge {
+  font-size: 0.9em;
+  padding: 5px 10px;
+}

@@ -1,0 +1,154 @@
+<div class="container mt-5 mb-5" *ngIf="!ucitavanje && !greska; else loadingOrError">
+  
+  <!-- HEADER PROFILA -->
+  <div class="card shadow-lg border-0 mb-5">
+    <div class="card-body p-5">
+      <div class="row align-items-center">
+        <div class="col-md-3 text-center">
+          <img [src]="autor.slika_profila || 'https://ui-avatars.com/api/?name=' + autor.ime + '+' + autor.prezime + '&background=007bff&color=fff&size=150'" 
+               class="rounded-circle border border-4 border-primary shadow" 
+               style="width: 150px; height: 150px; object-fit: cover;">
+        </div>
+        
+        <div class="col-md-9">
+          <h1 class="display-5 mb-2">{{ autor.ime }} {{ autor.prezime }}</h1>
+          <p class="text-muted mb-3">
+            <span class="badge bg-primary fs-6">{{ autor.uloga }}</span>
+            <span class="ms-3"><i class="bi bi-geo-alt"></i> {{ autor.drzava || 'Nije navedeno' }}</span>
+          </p>
+          
+          <div class="row mt-4">
+            <div class="col-md-3 text-center">
+              <div class="stat-card">
+                <h3 class="text-primary">{{ autor.broj_recepata }}</h3>
+                <p class="text-muted mb-0">Recepata</p>
+              </div>
+            </div>
+            <div class="col-md-3 text-center">
+              <div class="stat-card">
+                <h3 class="text-success">{{ autor.prosecna_ocena }}</h3>
+                <p class="text-muted mb-0">Prosečna ocena</p>
+              </div>
+            </div>
+            <div class="col-md-3 text-center">
+              <div class="stat-card">
+                <h3 class="text-info">{{ autor.ukupno_ocena }}</h3>
+                <p class="text-muted mb-0">Ocena</p>
+              </div>
+            </div>
+            <div class="col-md-3 text-center">
+              <div class="stat-card">
+                <h3 class="text-warning">{{ autor.ukupno_komentara }}</h3>
+                <p class="text-muted mb-0">Komentara</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFORMACIJE -->
+  <div class="row mb-5">
+    <div class="col-md-6 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informacije</h5>
+        </div>
+        <div class="card-body">
+          <p><strong><i class="bi bi-envelope"></i> Email:</strong> {{ autor.email }}</p>
+          <p><strong><i class="bi bi-gender-ambiguous"></i> Pol:</strong> {{ autor.pol || 'Nije navedeno' }}</p>
+          <p><strong><i class="bi bi-cake"></i> Datum rođenja:</strong> {{ formatirajDatum(autor.datum_rodjenja) }}</p>
+          <p><strong><i class="bi bi-calendar-plus"></i> Član od:</strong> {{ autor.datum_pridruzivanja }}</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="bi bi-star"></i> Ocene</h5>
+        </div>
+        <div class="card-body text-center">
+          <div class="display-1 text-warning mb-3">⭐ {{ autor.prosecna_ocena }}</div>
+          <p class="text-muted">Prosečna ocena na osnovu {{ autor.ukupno_ocena }} ocena</p>
+          <div class="progress" style="height: 20px;">
+            <div class="progress-bar bg-warning" [style.width]="(autor.prosecna_ocena / 5 * 100) + '%'"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECEPTI AUTORA -->
+  <div class="card shadow">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <h4 class="mb-0"><i class="bi bi-journal-text"></i> Objavljeni recepti ({{ autor.broj_recepata }})</h4>
+      <span class="badge bg-primary">Ukupno: {{ autor.recepti.length }}</span>
+    </div>
+    <div class="card-body">
+      <div *ngIf="autor.recepti.length === 0" class="text-center py-5">
+        <i class="bi bi-journal-x display-1 text-muted"></i>
+        <h5 class="mt-3">Autor još nije objavio nijedan recept</h5>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-4 mb-4" *ngFor="let recept of autor.recepti">
+          <div class="card h-100 shadow-sm hover-card">
+            <img [src]="recept.slika || 'assets/no-image.png'" 
+                 class="card-img-top" 
+                 style="height: 180px; object-fit: cover;"
+                 [alt]="recept.naslov">
+            <div class="card-body">
+              <h5 class="card-title">{{ recept.naslov }}</h5>
+              <p class="card-text text-muted small">
+                <i class="bi bi-clock"></i> {{ recept.vreme }} min • 
+                <i class="bi bi-person"></i> {{ recept.tezina }}
+              </p>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="badge bg-info">{{ recept.tip_jela }}</span>
+                <span class="text-warning">
+                  <i class="bi bi-star-fill"></i> {{ recept.prosecna_ocena }}
+                </span>
+              </div>
+            </div>
+            <div class="card-footer bg-transparent">
+              <a [routerLink]="['/recepti', recept.id]" class="btn btn-primary btn-sm w-100">
+                Pogledaj recept
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POVRATAK -->
+  <div class="mt-4 text-center">
+    <button routerLink="/recepti" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Nazad na recepte
+    </button>
+  </div>
+</div>
+
+<!-- LOADING I ERROR TEMPLATES -->
+<ng-template #loadingOrError>
+  <div class="container mt-5 text-center">
+    <div *ngIf="ucitavanje" class="py-5">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Učitavanje...</span>
+      </div>
+      <p class="mt-3">Učitavanje profila autora...</p>
+    </div>
+    
+    <div *ngIf="greska" class="alert alert-danger mt-5 mx-auto" style="max-width: 500px;">
+      <i class="bi bi-exclamation-triangle"></i>
+      <h4 class="alert-heading">Greška</h4>
+      <p>{{ greska }}</p>
+      <hr>
+      <button routerLink="/recepti" class="btn btn-outline-danger">
+        Nazad na recepte
+      </button>
+    </div>
+  </div>
+</ng-template>
