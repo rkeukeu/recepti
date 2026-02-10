@@ -1,58 +1,49 @@
 version: '3.8'
 
 services:
-  # 1. POSTGRESQL
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
     container_name: recepti-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: postgres
+      POSTGRES_DB: recepti_db
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U postgres -d recepti_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
-  # 2. REDIS
   redis:
     image: redis:7-alpine
     container_name: recepti-redis
     ports:
       - "6379:6379"
     command: redis-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # 3. FLASK BACKEND
   backend:
     build: ./back
     container_name: recepti-backend
     ports:
       - "5000:5000"
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - postgres
+      - redis
     environment:
-      DATABASE_URL: postgresql://postgres:admin@postgres:5432/postgres
+      DATABASE_URL: postgresql://postgres:admin@postgres:5432/recepti_db
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      JWT_SECRET_KEY: neka_tajna_rec
+      JWT_SECRET_KEY: moj_jwt_secret_123
+      FLASK_APP: run.py
     volumes:
       - ./back/uploads:/app/uploads
-    restart: unless-stopped
+    command: >
+      sh -c "python seed-database.py && python run.py"
 
-  # 4. ANGULAR FRONTEND - OVO JE POGREŠNO UVUČENO!
   frontend:
     build: ./front
     container_name: recepti-frontend

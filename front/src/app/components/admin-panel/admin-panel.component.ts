@@ -2,9 +2,9 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HttpClientModule, HttpClient, HttpHeaders } from '@angular/common/http';
 import { AdminService } from '../../services/admin.service';
 import { SocketService } from '../../services/socket.service';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'app-admin-panel',
@@ -12,15 +12,17 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
   imports: [
     CommonModule,
     RouterModule,
-    FormsModule
+    FormsModule,
+    HttpClientModule // 👈 DODAJ OVO
   ],
+  providers: [AdminService, SocketService], // 👈 DODAJ OVO
   templateUrl: './admin-panel.component.html'
 })
 export class AdminPanelComponent implements OnInit, OnDestroy {
   korisnici: any[] = [];
   statistika: any = {};
   topAutori: any[] = [];
-  zahtevi: any[] = [];  // ✅ DODAJ OVO!
+  noviZahtevi: any[] = [];  // 👈 OVO JE ISPRAVLJENO
   emailLogs: any[] = [];
   emailStats: any = {};
   ucitavanje = true;
@@ -34,13 +36,13 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     console.log('🎯 AdminPanel: ngOnInit started');
     this.ucitajPodatke();
-    this.ucitajZahteve();  // ✅ PROMENI OVO umesto pretplatiNaZahteve()
+    this.ucitajZahteve();
     this.loadEmailLogs();
     
     // Socket.IO subscription
     this.socketService.onNoviZahtev((zahtev: any) => {
       console.log('📨 Real-time zahtev:', zahtev);
-      this.zahtevi.unshift(zahtev); // Dodaj na početak
+      this.noviZahtevi.unshift(zahtev);
       alert(`🆕 Novi zahtev za autora:\n${zahtev.ime}\n${zahtev.email}`);
     });
   }
@@ -72,45 +74,42 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
     this.http.get('http://localhost:5000/auth/admin/zahtevi-za-autore', { headers })
       .subscribe({
         next: (data: any) => {
-          this.zahtevi = data;
-          console.log('✅ Učitano zahteva:', this.zahtevi.length);
+          this.noviZahtevi = data;
+          console.log('✅ Učitano zahteva:', this.noviZahtevi.length);
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Greška pri učitavanju zahteva:', err);
-          // Ako endpoint ne postoji, koristi stari
           this.http.get('http://localhost:5000/auth/admin/pending-requests', { headers })
             .subscribe({
               next: (oldData: any) => {
-                this.zahtevi = oldData;
-                console.log('✅ Učitano starih zahteva:', this.zahtevi.length);
+                this.noviZahtevi = oldData;
               },
               error: () => {
-                this.zahtevi = [];
+                this.noviZahtevi = [];
               }
             });
         }
       });
   }
 
-  odobriZahtev(zahtevId: number, email: string): void {
+  // 👈 PROMENI NAZIV OVE METODE ILI DODAJ ALIAS
+  odobriAutora(zahtevId: number, email: string): void {
     if (confirm(`Odobriti zahtev korisnika ${email}?`)) {
       const token = localStorage.getItem('token');
       const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
       
-      // Prvo probaj novi endpoint
       this.http.post(`http://localhost:5000/auth/admin/odobri-zahtev/${zahtevId}`, {}, { headers })
         .subscribe({
           next: (res: any) => {
             alert('✅ ' + res.msg);
-            this.zahtevi = this.zahtevi.filter(z => z.zahtev_id !== zahtevId);
+            this.noviZahtevi = this.noviZahtevi.filter(z => z.zahtev_id !== zahtevId);
           },
-          error: (err) => {
-            // Ako ne radi novi, probaj stari
+          error: (err: any) => {
             this.http.post(`http://localhost:5000/auth/admin/odobri-autora/${zahtevId}`, {}, { headers })
               .subscribe({
                 next: (res2: any) => {
                   alert('✅ ' + res2.msg);
-                  this.zahtevi = this.zahtevi.filter(z => z.user_id !== zahtevId);
+                  this.noviZahtevi = this.noviZahtevi.filter(z => z.user_id !== zahtevId);
                 },
                 error: (err2) => alert('❌ ' + (err2.error?.msg || 'Greška'))
               });
@@ -134,17 +133,16 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
       ).subscribe({
         next: (res: any) => {
           alert('✅ ' + res.msg);
-          this.zahtevi = this.zahtevi.filter(z => z.zahtev_id !== zahtevId);
+          this.noviZahtevi = this.noviZahtevi.filter(z => z.zahtev_id !== zahtevId);
         },
-        error: (err) => {
-          // Ako ne radi novi, probaj stari
+        error: (err: any) => {
           this.http.post(`http://localhost:5000/auth/admin/odbij-autora/${zahtevId}`, 
             { razlog: razlog }, 
             { headers }
           ).subscribe({
             next: (res2: any) => {
               alert('✅ ' + res2.msg);
-              this.zahtevi = this.zahtevi.filter(z => z.user_id !== zahtevId);
+              this.noviZahtevi = this.noviZahtevi.filter(z => z.user_id !== zahtevId);
             },
             error: (err2) => alert('❌ ' + (err2.error?.msg || 'Greška'))
           });
@@ -206,7 +204,7 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
         a.click();
         window.URL.revokeObjectURL(url);
       },
-      error: (err) => console.error('Greška pri preuzimanju PDF', err)
+      error: (err: any) => console.error('Greška pri preuzimanju PDF', err)
     });
   }
 }
