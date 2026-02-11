@@ -1,13 +1,15 @@
 """
 ADMINISTRATORSKE RUTE za PDF izveštaje
 """
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from datetime import datetime
 import os
 from multiprocessing import Process
+from .email_service import send_role_email
+
 
 # Kreiraj Blueprint
 admin_bp = Blueprint('admin', __name__)
@@ -316,3 +318,93 @@ def lista_izvestaja():
         "broj_izvestaja": len(pdf_fajlovi),
         "izvestaji": pdf_fajlovi
     }), 200
+
+@admin_bp.route('/author-requests', methods=['GET'])
+@jwt_required()
+def author_requests():
+    """
+    Administrator dobija listu zahteva da čitalac postane autor
+    """
+    from .models import User, AuthorRequest
+
+    admin_id = get_jwt_identity()
+    admin = User.query.get(admin_id)
+
+    if not admin or admin.uloga != 'administrator':
+        return jsonify({"msg": "Samo administrator može pristupiti"}), 403
+
+    reqs = AuthorRequest.query.filter_by(status='pending').order_by(AuthorRequest.created_at.desc()).all()
+
+    return jsonify([{
+        "id": r.id,
+        "user_id": r.user.id,
+        "email": r.user.email,
+        "ime": r.user.ime,
+        "prezime": r.user.prezime,
+        "created_at": r.created_at.isoformat()
+    } for r in reqs]), 200
+
+@admin_bp.route('/author-requests/<int:req_id>/approve', methods=['POST'])
+@jwt_required()
+def approve_author_request(req_id):
+    """
+    Admin odobrava zahtev -> korisnik postaje autor
+    """
+    from . import db
+    from .models import User, AuthorRequest
+
+    admin_id = get_jwt_identity()
+    admin = User.query.get(admin_id)
+
+    if not admin or admin.uloga != 'administrator':
+        return jsonify({"msg": "Samo administrator može pristupiti"}), 403
+
+    req = AuthorRequest.query.get(req_id)
+    if not req:
+        return jsonify({"msg": "Zahtev ne postoji"}), 404
+
+    if req.status != 'pending':
+        return jsonify({"msg": "Zahtev je već obrađen"}), 400
+
+    req.status = 'approved'
+    req.user.uloga = 'autor'
+
+    db.session.commit()
+
+    send_role_email(req.user.email, True)
+
+    return jsonify({"msg": "✅ Zahtev odobren, korisnik je sada autor"}), 200
+
+@admin_bp.route('/author-requests/<int:req_id>/reject', methods=['POST'])
+@jwt_required()
+def reject_author_request(req_id):
+    """
+    Admin odbija zahtev -> ostaje čitalac, pamti se razlog
+    """
+    from . import db
+    from .models import User, AuthorRequest
+
+    admin_id = get_jwt_identity()
+    admin = User.query.get(admin_id)
+
+    if not admin or admin.uloga != 'administrator':
+        return jsonify({"msg": "Samo administrator može pristupiti"}), 403
+
+    req = AuthorRequest.query.get(req_id)
+    if not req:
+        return jsonify({"msg": "Zahtev ne postoji"}), 404
+
+    if req.status != 'pending':
+        return jsonify({"msg": "Zahtev je već obrađen"}), 400
+
+    data = request.get_json(silent=True) or {}
+    reason = data.get("reason", "").strip()
+
+    req.status = 'rejected'
+    req.reason = reason if reason else "Nije naveden razlog"
+
+    db.session.commit()
+
+    send_role_email(req.user.email, False, req.reason)
+
+    return jsonify({"msg": "❌ Zahtev odbijen"}), 200

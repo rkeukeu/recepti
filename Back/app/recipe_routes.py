@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 from .models import db, Recipe, User, Comment, Rating
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import json
+from .email_service import send_comment_email
 
 recipe_bp = Blueprint('recipe', __name__)
 
@@ -12,7 +13,7 @@ def dodaj_recept():
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
     
-    if user.uloga not in ['autor', 'administrator']:
+    if user.uloga != 'autor':
         return jsonify({"msg": "Nemate dozvolu za objavu recepata"}), 403
 
     data = request.get_json()
@@ -106,7 +107,11 @@ def pretrazi_recepte():
 def ostavi_interakciju(id):
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
+    recept = Recipe.query.get_or_404(id)
+
     data = request.get_json()
+
+    comment_added = False
 
     nova_ocena_val = data.get('vrednost')
     if nova_ocena_val:
@@ -123,8 +128,22 @@ def ostavi_interakciju(id):
             ime_autora_komentara=f"{user.ime} {user.prezime}"
         )
         db.session.add(novi_komentar)
+        comment_added = True
 
     db.session.commit()
+
+    if comment_added:
+        if recept.autor_id != user_id:
+            current_app.logger.info(
+                f"[COMMENT_EMAIL] to={recept.autor.email} from={user.ime} {user.prezime} recipe={recept.naslov} author_id={recept.autor_id} commenter_id={user_id}"
+            )
+            send_comment_email(
+                recept.autor.email,
+                f"{user.ime} {user.prezime}",
+                recept.naslov,
+                tekst_komentara
+            )
+
     return jsonify({"msg": "Uspešno sačuvano!"}), 201
 
 # --- OMILJENI RECEPTI (TOGGLE) ---
@@ -147,6 +166,38 @@ def toggle_omiljeni(id):
     db.session.commit()
     return jsonify({"msg": f"Recept {poruka}", "dodato": dodato}), 200
 
+# --- IZMENA RECEPTA ---
+@recipe_bp.route('/<int:recipe_id>', methods=['PUT'])
+@jwt_required()
+def izmeni_recept(recipe_id):
+    user_id = int(get_jwt_identity())
+    recept = Recipe.query.get_or_404(recipe_id)
+
+    if recept.autor_id != user_id:
+        return jsonify({"msg": "Možete izmeniti samo svoje recepte"}), 403
+    
+    data = request.get_json() or {}
+
+    if 'naslov' in data and not data['naslov']:
+        return jsonify({"msg": "Naslov ne sme biti prazan"}), 400
+    if 'vreme_pripreme' in data and not data['vreme_pripreme']:
+        return jsonify({"msg": "Vreme pripreme je obavezno"}), 400
+    
+    for field in [
+        "naslov", "tip_jela", "vreme_pripreme", "tezina", "broj_osoba",
+        "sastojci", "koraci", "slika", "oznake"
+    ]:
+        if field in data:
+            setattr(recept, field, data[field])
+
+    db.session.commit()
+
+    kljucevi = current_app.redis.keys("pretraga:*")
+    if kljucevi:
+        current_app.redis.delete(*kljucevi)
+
+    return jsonify({"msg": "Recept uspešno izmenjen"}), 200
+
 # --- BRISANJE RECEPTA ---
 @recipe_bp.route('/<int:recipe_id>', methods=['DELETE'])
 @jwt_required()
@@ -158,10 +209,9 @@ def obrisi_recept(recipe_id):
         return jsonify({"msg": "Recept nije pronađen"}), 404
         
     if recept.autor_id != user_id:
-        user = User.query.get(user_id)
-        if user.uloga != 'administrator':
-            return jsonify({"msg": "Možete obrisati samo svoje recepte"}), 403
+        return jsonify({"msg": "Možete obrisati samo svoje recepte"}), 403
             
+    
     db.session.delete(recept)
     db.session.commit()
     

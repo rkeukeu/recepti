@@ -9,22 +9,17 @@ import os
 from dotenv import load_dotenv
 from datetime import timedelta
 
+
 load_dotenv()
 db = SQLAlchemy()
-socketio = SocketIO(
-    cors_allowed_origins="*",  # Dozvoli sve za test
-    logger=True, 
-    engineio_logger=True,
-    async_mode='threading',
-    transports=['polling', 'websocket']  # Prvo pokušaj polling
-)
+socketio = SocketIO(cors_allowed_origins="*")
 mail = Mail()
 
 def create_app():
     app = Flask(__name__)
     
     CORS(app, resources={r"/*": {
-    "origins": ["http://localhost:4200", "http://frontend:80"],
+    "origins": ["http://127.0.0.1:4200", "http://localhost:4200", "http://frontend:80"],
     "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     "allow_headers": ["Content-Type", "Authorization"]
     }})
@@ -41,13 +36,14 @@ def create_app():
     app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
     
     app.config.update(
-        MAIL_SERVER=os.getenv('MAIL_SERVER'),
-        MAIL_PORT=int(os.getenv('MAIL_PORT') or 2525),
-        MAIL_USERNAME=os.getenv('MAIL_USERNAME'),
-        MAIL_PASSWORD=os.getenv('MAIL_PASSWORD'),
-        MAIL_USE_TLS=os.getenv('MAIL_USE_TLS') == 'True',
-        MAIL_USE_SSL=False
-    )
+    MAIL_SERVER='mailhog',
+    MAIL_PORT=1025,
+    MAIL_USE_TLS=False,
+    MAIL_USE_SSL=False,
+    MAIL_USERNAME=None,
+    MAIL_PASSWORD=None,
+    MAIL_DEFAULT_SENDER=('Recepti Platforma', 'no-reply@recepti.local')
+)
     
     db.init_app(app)
     JWTManager(app)
@@ -70,14 +66,7 @@ def create_app():
     app.register_blueprint(admin_bp, url_prefix='/admin')
 
     with app.app_context():
-        from .models import User, Recipe
+        from . import models
         db.create_all()
         
-    @socketio.on('connect')
-    def handle_connect():
-        print('🔌 Client connected to Socket.IO')
-    
-    @socketio.on('disconnect')
-    def handle_disconnect():
-        print('🔌 Client disconnected from Socket.IO')
     return app

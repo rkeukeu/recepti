@@ -34,13 +34,19 @@
           >
             Pogledaj
           </button>
+          <button *ngIf="auth.userId && auth.userId === recept.autor_id"
+        (click)="openEdit(recept)"
+        class="btn btn-outline-danger btn-sm">
+            Izmeni
+          </button>
           <button
-            *ngIf="auth.uloga === 'administrator'"
+            *ngIf="auth.userId && auth.userId === recept.autor_id"
             (click)="obrisi(recept.id); $event.stopPropagation()"
             class="btn btn-outline-danger btn-sm"
           >
             Obriši
           </button>
+
         </div>
       </div>
     </div>

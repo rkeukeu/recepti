@@ -10,6 +10,7 @@ from datetime import datetime
 import os
 import uuid
 from werkzeug.utils import secure_filename
+from .models import AuthorRequest
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -85,28 +86,37 @@ def zatrazi_ulogu_autora():
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
     
-    if user.uloga == 'autor':
-        return jsonify({"msg": "Već ste autor"}), 400
+    if not user:
+        return jsonify({"msg": "Korisnik nije pronađen"}), 404
 
-    print(f"🔔 DEBUG: Emitting socket event for user {user.id}")
-    print(f"🔔 DEBUG: User data: {user.ime} {user.prezime}, {user.email}")
+    if user.uloga != 'čitalac':
+        return jsonify({"msg": "Zahtev može poslati samo čitalac"}), 400
+
+    #Spreci dupli zahtev
+    postoji = AuthorRequest.query.filter_by(user_id=user.id, status='pending').first()
+    if postoji:
+        return jsonify({"msg": "Zahtev je već poslat i čeka obradu"}), 400
     
-    # EMITUJ SA BROADCAST
+    zahtev = AuthorRequest(user_id=user.id, status='pending')
+    db.session.add(zahtev)
+    db.session.commit()
+
+    #real-time obavestenje adminu
     socketio.emit('novi_zahtev', {
+        'request_id': zahtev.id,
         'ime': f"{user.ime} {user.prezime}",
         'email': user.email,
-        'user_id': user.id,
-        'timestamp': datetime.utcnow().isoformat()
-    }, broadcast=True, namespace='/')  # DODAJ broadcast=True
-    
-    print("✅ DEBUG: Socket event emitted with broadcast")
-    
-    return jsonify({"msg": "Zahtev poslat administratoru!"}), 200
+        'user_id': user.id
+    })
+
+    return jsonify({"msg": "Zahtev poslat administratoru!", "request_id": zahtev.id}), 201
 
 # --- ADMIN ODOBRAVANJE (Slanje mejla) ---
 @auth_bp.route('/admin/odobri-autora/<int:target_id>', methods=['POST'])
 @jwt_required()
 def odobri_autora(target_id):
+    from .models import AuthorRequest
+
     admin_id = get_jwt_identity()
     admin = User.query.get(admin_id)
     
@@ -117,13 +127,25 @@ def odobri_autora(target_id):
     if not user:
         return jsonify({"msg": "Korisnik nije nađen"}), 404
 
+    #  pronađi pending zahtev
+    zahtev = AuthorRequest.query.filter_by(user_id=user.id, status='pending').first()
+    if not zahtev:
+        return jsonify({"msg": "Ne postoji aktivan zahtev za ovog korisnika."}), 400
+
+    #  promeni status zahteva
+    zahtev.status = 'approved'
+
+    #  promeni ulogu korisnika
     user.uloga = 'autor'
+
     db.session.commit()
 
     try:
-        msg = Message("Odobren zahtev za autora",
-                      sender=current_app.config['MAIL_USERNAME'],
-                      recipients=[user.email])
+        msg = Message(
+            "Odobren zahtev za autora",
+            sender=current_app.config['MAIL_USERNAME'],
+            recipients=[user.email]
+        )
         msg.body = f"Zdravo {user.ime}, Vaš zahtev je odobren. Sada možete postavljati recepte!"
         mail.send(msg)
     except Exception as e:
@@ -393,7 +415,7 @@ def upload_image():
     file.save(file_path)
     
     # Vrati URL
-    file_url = f"/uploads/{unique_filename}"
+    file_url = f"/uploads/<filename>"
     return jsonify({
         "msg": "Fajl uspešno uploadovan",
         "url": file_url,

@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Recipe } from '../../services/recipe';
+import { FavoritesService } from '../../services/favorites.service';
 
 @Component({
   selector: 'app-recipe-details',
@@ -19,7 +20,7 @@ export class RecipeDetails implements OnInit {
   noviKomentar: string = '';
   jeOmiljen: boolean = false;
 
-  constructor(private route: ActivatedRoute, private recipeService: Recipe) {}
+  constructor(private route: ActivatedRoute, private recipeService: Recipe, private favoritesService: FavoritesService) {}
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -32,6 +33,12 @@ export class RecipeDetails implements OnInit {
   this.recipeService.getRecept(id).subscribe({
     next: (data) => {
       this.recept = data;
+      this.favoritesService.getFavorites().subscribe({
+    next: (fav: any[]) => {
+    this.jeOmiljen = fav.some(r => r.id === this.recept.id);
+    },
+    error: () => {}
+    });
       if (this.recept.sastojci) {
         this.listaSastojaka = this.recept.sastojci
           .split(',')
@@ -66,11 +73,30 @@ export class RecipeDetails implements OnInit {
   }
 
   toggleOmiljeni() {
-    this.recipeService.toggleOmiljeni(this.recept.id).subscribe({
-      next: (res: any) => {
-        this.jeOmiljen = res.dodato;
-        alert(res.msg);
+  if (!this.recept) return;
+
+  if (this.jeOmiljen) {
+    this.favoritesService.removeFromFavorites(this.recept.id).subscribe({
+      next: () => {
+        this.jeOmiljen = false;
+        alert('Uklonjeno iz omiljenih');
       },
+      error: (err) => {
+        console.error(err);
+        alert('Greška pri uklanjanju iz omiljenih');
+      }
+    });
+  } else {
+    this.favoritesService.addToFavorites(this.recept.id).subscribe({
+      next: () => {
+        this.jeOmiljen = true;
+        alert('Dodato u omiljene');
+      },
+      error: (err) => {
+        console.error(err);
+        alert('Greška pri dodavanju u omiljene');
+      }
     });
   }
+}
 }

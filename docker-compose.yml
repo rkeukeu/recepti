@@ -34,7 +34,7 @@ services:
 
   # 3. FLASK BACKEND
   backend:
-    build: ./back
+    build: ./Back
     container_name: recepti-backend
     ports:
       - "5000:5000"
@@ -52,7 +52,6 @@ services:
       - ./back/uploads:/app/uploads
     restart: unless-stopped
 
-  # 4. ANGULAR FRONTEND - OVO JE POGREŠNO UVUČENO!
   frontend:
     build: ./front
     container_name: recepti-frontend
@@ -60,6 +59,13 @@ services:
       - "4200:80"
     depends_on:
       - backend
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: recepti-mailhog
+    ports:
+      - "8025:8025"
+      - "1025:1025"
 
 volumes:
   postgres_data:

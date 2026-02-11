@@ -35,6 +35,10 @@ export class Recipe {
     });
   }
 
+  updateRecept(id: number, data: any) {
+    return this.http.put(`${this.apiUrl}/recept/${id}`, data);
+  }
+
   ostaviInterakciju(id: number, data: any) {
     return this.http.post(
       `http://127.0.0.1:5000/recepti/${id}/interakcija`,
@@ -48,7 +52,6 @@ export class Recipe {
   
   getOmiljeni(): Observable<any[]> {
 	const headers = this.getHeaders();
-  // Koristi isti endpoint kao u recipe_routes.py: /recepti/omiljeni
 	return this.http.get<any[]>('http://127.0.0.1:5000/recepti/omiljeni', { headers });
   }
 }

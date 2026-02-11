@@ -40,6 +40,20 @@ export class Auth {
     const uloga = localStorage.getItem('uloga');
     return uloga === 'autor' || uloga === 'administrator';
   }
+  
+  get userId(): number | null {
+	const token = localStorage.getItem('token');
+	if (!token) return null;
+
+	try {
+		const payload = JSON.parse(atob(token.split('.')[1]));
+		const sub = payload.sub; // Flask-JWT-Extended identity ide u "sub"
+		const id = parseInt(sub, 10);
+		return Number.isNaN(id) ? null : id;
+	  } catch {
+		return null;
+	}
+  }
 
   getProfil(): Observable<any> {
     const token = localStorage.getItem('token');

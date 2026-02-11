@@ -1,0 +1,91 @@
+/* Kontejner sa blagom senkom i animacijom pojave */
+.container {
+  max-width: 900px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.card {
+  border: none;
+  border-radius: 15px;
+  background-color: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Naslov */
+h2 {
+  color: #2c3e50;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+/* Stilovi za label i input polja */
+.form-label {
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.form-control,
+.form-select {
+  border-radius: 8px;
+  border: 1px solid #dce1e6;
+  padding: 12px 15px;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 8px rgba(40, 167, 69, 0.2);
+  outline: none;
+}
+
+/* Poseban stil za Textarea */
+textarea.form-control {
+  resize: none; /* Sprečava ručno menjanje veličine koje kvari dizajn */
+}
+
+/* Dugme za objavu */
+.btn-success {
+  background-color: #28a745;
+  border: none;
+  padding: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 8px;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.btn-success:active {
+  transform: translateY(0);
+}
+
+/* Animacija za lepši ulazak na stranicu */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsiveness - prilagođavanje za mobilne telefone */
+@media (max-width: 768px) {
+  .card {
+    padding: 20px !important;
+  }
+  h2 {
+    font-size: 1.5rem;
+  }
+}

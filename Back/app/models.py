@@ -55,3 +55,34 @@ class Rating(db.Model):
     vrednost = db.Column(db.Integer) # 1-5
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id'))
+
+class AuthorRequest(db.Model):
+    __tablename__ = "author_request"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('user.id'),
+        nullable=False
+    )
+
+    status = db.Column(
+        db.String(20),
+        default='pending'
+    )  # pending, approved, rejected
+
+    reason = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow
+    )
+
+    user = db.relationship(
+        'User',
+        backref='author_requests'
+    )
