@@ -43,9 +43,9 @@ class Recipe(db.Model):
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    naslov = db.Column(db.String(100))
+    naslov = db.Column(db.String(100), nullable=False)
     tekst = db.Column(db.Text, nullable=False)
-    slika_jela = db.Column(db.String(255)) 
+    slika = db.Column(db.String(255), nullable=True) 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id'))
     ime_autora_komentara = db.Column(db.String(100)) 

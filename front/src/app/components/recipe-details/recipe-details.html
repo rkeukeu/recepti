@@ -4,10 +4,11 @@
       <div class="position-relative">
         <img
           *ngIf="recept?.slika"
-          [src]="uploadService.getImageUrl(recept.slika)"
+          [src]="recept.slika"
           class="img-fluid rounded shadow mb-3 w-100"
           [alt]="recept.naslov"
         />
+
         <button
           (click)="toggleOmiljeni()"
           class="btn btn-light position-absolute top-0 end-0 m-2 shadow-sm rounded-circle"
@@ -19,21 +20,22 @@
 
       <div class="card p-3 shadow-sm bg-light mb-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <h4 class="text-warning m-0">
-            ⭐ {{ recept.prosecna_ocena || '0.0' }}
-          </h4>
-          <span class="text-muted small"
-            >{{ recept.broj_ocena }} recenzija</span
-          >
+          <h4 class="text-warning m-0">⭐ {{ recept.prosecna_ocena || '0.0' }}</h4>
+          <span class="text-muted small">{{ recept.broj_ocena }} recenzija</span>
         </div>
         <hr />
         <p>
-          <strong>👨‍🍳 Autor:</strong> 
-          <a [routerLink]="['/autor', recept.autor_id]" class="text-decoration-none text-primary">
+          <strong>👨‍🍳 Autor:</strong>
+          <a
+            [routerLink]="['/autor', recept.autor_id]"
+            class="text-decoration-none text-primary"
+          >
             {{ recept.autor }}
           </a>
         </p>
-        <p><strong>🕒 Vreme:</strong> {{ recept.vreme }} min</p>
+
+        <p><strong>🕒 Vreme:</strong> {{ recept.vreme || recept.vreme_pripreme }} min</p>
+
         <p>
           <strong>⚖️ Težina:</strong>
           <span class="badge bg-warning text-dark">{{ recept.tezina }}</span>
@@ -44,8 +46,10 @@
       <div
         class="card p-3 shadow-sm border-0"
         style="background-color: #f8f9fa"
+        *ngIf="auth.uloga !== 'administrator'"
       >
         <h5 style="color: #ff7675">Ocenite ovaj recept</h5>
+
         <div class="mb-2">
           <select [(ngModel)]="novaOcena" class="form-select form-select-sm">
             <option [value]="5">⭐⭐⭐⭐⭐ (5)</option>
@@ -55,16 +59,45 @@
             <option [value]="1">⭐ (1)</option>
           </select>
         </div>
+
+        <input
+          [(ngModel)]="naslovKomentara"
+          class="form-control form-control-sm mb-2"
+          placeholder="Naslov komentara..."
+          name="naslovKomentara"
+        />
+
         <textarea
           [(ngModel)]="noviKomentar"
           class="form-control form-control-sm mb-2"
           rows="3"
-          placeholder="Vaš komentar..."
+          placeholder="Tekst komentara..."
+          name="tekstKomentara"
         ></textarea>
+
+        <input
+          type="file"
+          class="form-control form-control-sm mb-2"
+          accept="image/*"
+          (change)="onCommentImageSelected($event)"
+        />
+
+        <div *ngIf="uploading" class="mt-1 text-info small">Uploadujem sliku...</div>
+
+        <div *ngIf="uploadError" class="alert alert-danger mt-2 mb-2">
+          {{ uploadError }}
+        </div>
+
+        <div *ngIf="imagePreview" class="mt-2 mb-2">
+          <p class="mb-1 small text-secondary">Preview slike komentara:</p>
+          <img [src]="imagePreview" class="img-thumbnail" style="max-height: 200px; object-fit: cover" />
+        </div>
+
         <button
           (click)="posaljiInterakciju()"
           class="btn btn-sm text-white w-100"
           style="background-color: #ff7675"
+          [disabled]="uploading"
         >
           Pošalji utisak
         </button>
@@ -84,17 +117,14 @@
       </ul>
 
       <h3>📝 Priprema</h3>
-      <div
-        class="p-4 border-start border-4 border-success bg-white shadow-sm rounded mb-5"
-      >
-        <p style="white-space: pre-line; line-height: 1.6">
-          {{ recept.koraci }}
-        </p>
+      <div class="p-4 border-start border-4 border-success bg-white shadow-sm rounded mb-5">
+        <p style="white-space: pre-line; line-height: 1.6">{{ recept.koraci }}</p>
       </div>
 
       <div class="mt-5">
         <h3>💬 Komentari korisnika</h3>
         <hr />
+
         <div
           *ngIf="!recept.komentari || recept.komentari.length === 0"
           class="text-muted italic"
@@ -102,16 +132,24 @@
           Nema komentara za ovaj recept. Budite prvi koji će ostaviti utisak!
         </div>
 
-        <div
-          class="card mb-2 border-0 shadow-sm"
-          *ngFor="let k of recept.komentari"
-        >
+        <div class="card mb-2 border-0 shadow-sm" *ngFor="let k of recept.komentari">
           <div class="card-body py-2">
             <div class="d-flex justify-content-between">
               <strong style="color: #ff7675">{{ k.autor }}</strong>
               <small class="text-muted">{{ k.datum }}</small>
             </div>
+
+            <h6 class="mt-2 mb-1" *ngIf="k.naslov">{{ k.naslov }}</h6>
+
             <p class="mb-0 mt-1">{{ k.tekst }}</p>
+
+            <div class="mt-2" *ngIf="k.slika">
+              <img
+                [src]="k.slika"
+                class="img-thumbnail"
+                style="max-height: 240px; object-fit: cover"
+              />
+            </div>
           </div>
         </div>
       </div>

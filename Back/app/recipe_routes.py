@@ -68,7 +68,9 @@ def preuzmi_recept(id):
         "broj_ocena": len(sve_ocene),
         "komentari": [{
             "id": k.id,
+            "naslov": k.naslov,
             "tekst": k.tekst,
+            "slika": k.slika,
             "autor": k.ime_autora_komentara,
             "datum": k.datum_postavljanja.strftime("%d.%m.%Y. %H:%M") if hasattr(k, 'datum_postavljanja') else None
         } for k in r.komentari[::-1]] # Najnoviji komentari prvi
@@ -109,6 +111,9 @@ def ostavi_interakciju(id):
     user = User.query.get(user_id)
     recept = Recipe.query.get_or_404(id)
 
+    if user.uloga not in ['autor', 'čitalac']:
+        return jsonify({"msg": "Administrator ne može ostavljati komentare"}), 403
+
     data = request.get_json()
 
     comment_added = False
@@ -119,10 +124,19 @@ def ostavi_interakciju(id):
         nova_ocena = Rating(vrednost=nova_ocena_val, user_id=user_id, recipe_id=id)
         db.session.add(nova_ocena)
 
-    tekst_komentara = data.get('komentar')
-    if tekst_komentara:
+    naslov_komentara = (data.get('naslov') or '').strip()
+    tekst_komentara = (data.get('komentar') or '').strip()
+    slika_komentara = (data.get('slika') or '').strip()  # opcionalno
+
+    if tekst_komentara or naslov_komentara or slika_komentara:
+        # naslov + tekst obavezni
+        if not naslov_komentara or not tekst_komentara:
+            return jsonify({"msg": "Naslov i tekst komentara su obavezni"}), 400
+
         novi_komentar = Comment(
+            naslov=naslov_komentara,
             tekst=tekst_komentara,
+            slika=slika_komentara if slika_komentara else None,
             user_id=user_id,
             recipe_id=id,
             ime_autora_komentara=f"{user.ime} {user.prezime}"
