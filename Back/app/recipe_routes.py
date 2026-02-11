@@ -55,7 +55,7 @@ def preuzmi_recept(id):
         "id": r.id,
         "naslov": r.naslov,
         "tip_jela": r.tip_jela,
-        "vreme": r.vreme_pripreme,
+        "vreme_pripreme": r.vreme_pripreme,
         "tezina": r.tezina,
         "broj_osoba": r.broj_osoba,
         "sastojci": r.sastojci,
@@ -91,7 +91,7 @@ def pretrazi_recepte():
         rezultati.append({
             "id": r.id,
             "naslov": r.naslov,
-            "vreme": r.vreme_pripreme,
+            "vreme_pripreme": r.vreme_pripreme,
             "tezina": r.tezina,
             "slika": r.slika,
             "autor": f"{r.autor.ime} {r.autor.prezime}",
@@ -167,7 +167,7 @@ def toggle_omiljeni(id):
     return jsonify({"msg": f"Recept {poruka}", "dodato": dodato}), 200
 
 # --- IZMENA RECEPTA ---
-@recipe_bp.route('/<int:recipe_id>', methods=['PUT'])
+@recipe_bp.route('/recept/<int:recipe_id>/izmeni', methods=['PUT'])
 @jwt_required()
 def izmeni_recept(recipe_id):
     user_id = int(get_jwt_identity())
@@ -232,7 +232,7 @@ def get_omiljeni():
         omiljeni.append({
             "id": recept.id,
             "naslov": recept.naslov,
-            "vreme": recept.vreme_pripreme,
+            "vreme_pripreme": recept.vreme_pripreme,
             "tezina": recept.tezina,
             "slika": recept.slika,
             "autor": f"{recept.autor.ime} {recept.autor.prezime}"

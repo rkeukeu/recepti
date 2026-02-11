@@ -96,15 +96,31 @@
       </div>
 
       <div class="col-12 mb-4">
-        <label class="form-label text-secondary small fw-bold"
-          >Link do profilne slike</label
-        >
+        <label class="form-label text-secondary small fw-bold">Profilna slika</label>
+      
         <input
-          type="text"
+          type="file"
           class="form-control custom-input"
-          [(ngModel)]="user.slika_profila"
-          placeholder="https://putanja-do-slike.jpg"
+          accept="image/*"
+          (change)="onProfileImageSelected($event)"
         />
+      
+        <div *ngIf="uploading" class="mt-2 text-info small">
+          Uploadujem sliku...
+        </div>
+      
+        <div *ngIf="uploadError" class="alert alert-danger mt-2">
+          {{ uploadError }}
+        </div>
+      
+        <div *ngIf="user.slika_profila" class="mt-3">
+          <p class="mb-2 small text-secondary">Preview:</p>
+          <img
+            [src]="user.slika_profila"
+            class="img-thumbnail"
+            style="max-height: 200px; object-fit: cover"
+          />
+        </div>
       </div>
     </div>
 

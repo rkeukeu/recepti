@@ -1,8 +1,7 @@
 <nav class="navbar shadow-sm">
   <div class="nav-section left">
     <a routerLink="/recepti" routerLinkActive="active">Svi Recepti</a>
-    <a
-      *ngIf="auth.isLoggedIn && auth.isAutor()"
+    <a *ngIf="auth.isLoggedIn && auth.uloga === 'autor'"
       routerLink="/dodaj-recept"
       class="btn-add-nav"
       >+ Dodaj Recept</a
@@ -20,16 +19,16 @@
     </ng-container>
 
     <ng-container *ngIf="auth.isLoggedIn">
-      <a routerLink="/moj-profil" class="nav-profile-link">
+      <a *ngIf="auth.uloga !== 'administrator'"
+         routerLink="/moj-profil"
+         class="nav-profile-link">
         <i class="bi bi-person-circle"></i> Moj Profil
       </a>
 
-      <!-- DODAJ OVDE LINK ZA OMIJENE -->
       <a routerLink="/favorites" class="nav-profile-link">
         <i class="bi bi-heart-fill"></i> Omiljeni
       </a>
 
-      <!-- ADMIN LINK (samo za administratore) -->
       <a *ngIf="auth.uloga === 'administrator'" 
          routerLink="/admin" 
          class="nav-profile-link">

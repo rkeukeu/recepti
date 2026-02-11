@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_socketio import SocketIO
 from flask_mail import Mail
-from flask_cors import CORS  # Uvezi CORS
+from flask_cors import CORS
 from redis import Redis
 import os
 from dotenv import load_dotenv

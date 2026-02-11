@@ -36,8 +36,14 @@ export class Recipe {
   }
 
   updateRecept(id: number, data: any) {
-    return this.http.put(`${this.apiUrl}/recept/${id}`, data);
+    const token = localStorage.getItem('token');
+    const headers = token
+      ? new HttpHeaders().set('Authorization', `Bearer ${token}`)
+      : new HttpHeaders();
+  
+    return this.http.put(`${this.apiUrl}/${id}`, data, { headers });
   }
+  
 
   ostaviInterakciju(id: number, data: any) {
     return this.http.post(

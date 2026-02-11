@@ -19,7 +19,6 @@ export class UploadService {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`
-      // NE dodavaj 'Content-Type' - browser će automatski setovati multipart/form-data
     });
 
     return this.http.post(`${this.apiUrl}/upload`, formData, { headers });
