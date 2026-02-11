@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AutorService } from '../../services/autor.service';
+import { UploadService } from '../../services/upload.service';
+
 
 @Component({
   selector: 'app-autor-profile',
@@ -17,7 +19,8 @@ export class AutorProfileComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private autorService: AutorService
+    private autorService: AutorService,
+    public uploadService: UploadService
   ) {}
 
   ngOnInit(): void {

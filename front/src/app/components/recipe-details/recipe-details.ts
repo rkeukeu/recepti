@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Recipe } from '../../services/recipe';
 import { FavoritesService } from '../../services/favorites.service';
+import { UploadService } from '../../services/upload.service';
 
 @Component({
   selector: 'app-recipe-details',
@@ -20,7 +21,7 @@ export class RecipeDetails implements OnInit {
   noviKomentar: string = '';
   jeOmiljen: boolean = false;
 
-  constructor(private route: ActivatedRoute, private recipeService: Recipe, private favoritesService: FavoritesService) {}
+  constructor(private route: ActivatedRoute, private recipeService: Recipe, private favoritesService: FavoritesService,  public uploadService: UploadService) {}
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -31,7 +32,7 @@ export class RecipeDetails implements OnInit {
 
   ucitajRecept(id: number) {
   this.recipeService.getRecept(id).subscribe({
-    next: (data) => {
+    next: (data: any) => {
       this.recept = data;
       this.favoritesService.getFavorites().subscribe({
     next: (fav: any[]) => {
@@ -50,7 +51,7 @@ export class RecipeDetails implements OnInit {
         console.warn('autor_id nije definisan za recept');
       }
     },
-    error: (err) => console.error('Greška pri učitavanju recepta', err),
+    error: (err: any) => console.error('Greška pri učitavanju recepta', err),
   });
 }
 
@@ -63,12 +64,12 @@ export class RecipeDetails implements OnInit {
     };
 
     this.recipeService.ostaviInterakciju(this.recept.id, payload).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         alert('Uspešno ste ocenili recept!');
         this.noviKomentar = '';
         this.ucitajRecept(this.recept.id);
       },
-      error: (err) => console.error('Greška pri slanju utiska', err),
+      error: (err: any) => console.error('Greška pri slanju utiska', err),
     });
   }
 
@@ -81,7 +82,7 @@ export class RecipeDetails implements OnInit {
         this.jeOmiljen = false;
         alert('Uklonjeno iz omiljenih');
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error(err);
         alert('Greška pri uklanjanju iz omiljenih');
       }
@@ -92,7 +93,7 @@ export class RecipeDetails implements OnInit {
         this.jeOmiljen = true;
         alert('Dodato u omiljene');
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error(err);
         alert('Greška pri dodavanju u omiljene');
       }

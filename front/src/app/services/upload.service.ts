@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -24,6 +26,8 @@ export class UploadService {
   }
 
   getImageUrl(filename: string): string {
-    return `http://localhost:5000/auth/uploads/${filename}`;
-  }
+  return `http://localhost:5000/auth/uploads/${filename}`;
+}
+
+
 }

@@ -95,7 +95,7 @@
       <div class="row">
         <div class="col-md-4 mb-4" *ngFor="let recept of autor.recepti">
           <div class="card h-100 shadow-sm hover-card">
-            <img [src]="recept.slika || 'assets/no-image.png'" 
+            <img [src]="recept.slika ? uploadService.getImageUrl(recept.slika) : 'assets/no-image.png'"
                  class="card-img-top" 
                  style="height: 180px; object-fit: cover;"
                  [alt]="recept.naslov">

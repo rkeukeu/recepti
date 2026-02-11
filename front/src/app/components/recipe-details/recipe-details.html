@@ -3,7 +3,8 @@
     <div class="col-md-5">
       <div class="position-relative">
         <img
-          [src]="recept.slika || 'assets/no-image.png'"
+          *ngIf="recept?.slika"
+          [src]="uploadService.getImageUrl(recept.slika)"
           class="img-fluid rounded shadow mb-3 w-100"
           [alt]="recept.naslov"
         />

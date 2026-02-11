@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { Recipe } from '../../services/recipe';
 import { Router } from '@angular/router';
-import { UploadService } from '../../services/upload.service'; // DODAJ OVO
-import { HttpClient } from '@angular/common/http'; // DODAJ OVO AKO TREBA
+import { UploadService } from '../../services/upload.service';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-recipe-add',
@@ -19,11 +19,10 @@ export class RecipeAdd {
     broj_osoba: 1,
     sastojci: '',
     koraci: '',
-    slika: '',  // OVO ĆE BITI URL POSLE UPLOADA
+    slika: '',
     oznake: '',
   };
 
-  // DODAJ OVE PROMENLJIVE:
   imagePreview: string | ArrayBuffer | null = null;
   uploading = false;
   uploadError: string | null = null;
@@ -32,21 +31,18 @@ export class RecipeAdd {
   constructor(
     private recipeService: Recipe, 
     private router: Router,
-    private uploadService: UploadService  // DODAJ OVO
+    private uploadService: UploadService
   ) {}
 
-  // DODAJ METODU ZA ODABIR SLIKE:
   onImageSelected(event: any): void {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Provera veličine (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       this.uploadError = 'Slika je prevelika. Maksimalna veličina je 5MB.';
       return;
     }
 
-    // Provera tipa
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       this.uploadError = 'Dozvoljeni formati: JPG, PNG, GIF, WebP';
@@ -56,7 +52,6 @@ export class RecipeAdd {
     this.selectedFile = file;
     this.uploadError = null;
 
-    // Prikaži preview
     const reader = new FileReader();
     reader.onload = (e) => {
       this.imagePreview = e.target?.result as string;
@@ -64,7 +59,6 @@ export class RecipeAdd {
     reader.readAsDataURL(file);
   }
 
-  // MODIFIKUJ POSTOJEĆU SUBMIT METODU:
   submit() {
     if (!this.noviRecept.naslov || !this.noviRecept.sastojci) {
       alert('Molimo popunite naslov i sastojke.');
@@ -76,9 +70,9 @@ export class RecipeAdd {
       this.uploading = true;
       this.uploadService.uploadImage(this.selectedFile).subscribe({
         next: (result: any) => {
-          this.noviRecept.slika = `http://localhost:5000${result.url}`;
-          this.uploading = false;
-          this.posaljiRecept(); // Pošalji recept nakon uploada
+        this.noviRecept.slika = result.filename;  
+        this.uploading = false;
+        this.posaljiRecept();
         },
         error: (error: any) => {
           this.uploading = false;
@@ -94,11 +88,11 @@ export class RecipeAdd {
   // NOVA POMOĆNA METODA ZA SLANJE RECEPTA:
   private posaljiRecept() {
     this.recipeService.dodajRecept(this.noviRecept).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         alert('Recept je uspešno dodat!');
         this.router.navigate(['/recepti']);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error(err);
         alert('Greška pri dodavanju: ' + (err.error?.msg || 'Nepoznata greška'));
       },

@@ -1,6 +1,6 @@
 from .models import Recipe
 import json
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, send_from_directory
 from .models import db, User
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_mail import Message
@@ -24,7 +24,6 @@ def register():
 
     hashed_pw = bcrypt.hashpw(data['lozinka'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    # Konverzija datuma iz stringa (npr. "1995-05-20") u Python date objekat
     datum_rodj = None
     if data.get('datum_rodjenja'):
         try:
@@ -127,15 +126,12 @@ def odobri_autora(target_id):
     if not user:
         return jsonify({"msg": "Korisnik nije nađen"}), 404
 
-    #  pronađi pending zahtev
     zahtev = AuthorRequest.query.filter_by(user_id=user.id, status='pending').first()
     if not zahtev:
         return jsonify({"msg": "Ne postoji aktivan zahtev za ovog korisnika."}), 400
 
-    #  promeni status zahteva
     zahtev.status = 'approved'
 
-    #  promeni ulogu korisnika
     user.uloga = 'autor'
 
     db.session.commit()
@@ -210,6 +206,7 @@ def update_profile():
         db.session.rollback()
         return jsonify({"msg": "Greška pri čuvanju podataka", "error": str(e)}), 500
     
+# --- OMILJENI DODAJ/UKLONI ---
 @auth_bp.route("/favorites/<int:recipe_id>", methods=["POST"])
 @jwt_required()
 def add_favorite(recipe_id):
@@ -219,14 +216,14 @@ def add_favorite(recipe_id):
     recipe = Recipe.query.get_or_404(recipe_id)
 
     if recipe in user.lista_omiljenih:
-        return jsonify({"message": "Already in favorites"}), 400
+        return jsonify({"message": "Već je u omiljenim"}), 400
 
     user.lista_omiljenih.append(recipe)
     db.session.commit()
 
     current_app.redis.delete(f"favorites:user:{user_id}")
 
-    return jsonify({"message": "Added to favorites"}), 201
+    return jsonify({"message": "Dodato u omiljenje"}), 201
 
 @auth_bp.route("/favorites/<int:recipe_id>", methods=["DELETE"])
 @jwt_required()
@@ -237,14 +234,14 @@ def remove_favorite(recipe_id):
     recipe = Recipe.query.get_or_404(recipe_id)
 
     if recipe not in user.lista_omiljenih:
-        return jsonify({"message": "Not in favorites"}), 404
+        return jsonify({"message": "Nije u omiljenim"}), 404
 
     user.lista_omiljenih.remove(recipe)
     db.session.commit()
 
     current_app.redis.delete(f"favorites:user:{user_id}")
 
-    return jsonify({"message": "Removed from favorites"}), 200
+    return jsonify({"message": "Uklonjen iz omiljenih"}), 200
 
 @auth_bp.route("/favorites", methods=["GET"])
 @jwt_required()
@@ -415,7 +412,7 @@ def upload_image():
     file.save(file_path)
     
     # Vrati URL
-    file_url = f"/uploads/<filename>"
+    file_url = unique_filename
     return jsonify({
         "msg": "Fajl uspešno uploadovan",
         "url": file_url,
@@ -428,7 +425,7 @@ def serve_uploaded_file(filename):
     """Serviraj uploadovane fajlove"""
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
     
-# --- PROFIL AUTORA (DODAJ OVU RUTU) ---
+# --- PROFIL AUTORA ---
 @auth_bp.route('/autor/<int:autor_id>', methods=['GET'])
 @jwt_required(optional=True)  # Dozvoli i neulogovanim korisnicima
 def get_autor_profile(autor_id):
