@@ -41,7 +41,7 @@ export class Recipe {
       ? new HttpHeaders().set('Authorization', `Bearer ${token}`)
       : new HttpHeaders();
   
-    return this.http.put(`${this.apiUrl}/${id}`, data, { headers });
+      return this.http.put(`${this.apiUrl}/${id}`, data, { headers });
   }
   
 

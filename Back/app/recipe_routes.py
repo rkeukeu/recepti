@@ -181,7 +181,7 @@ def toggle_omiljeni(id):
     return jsonify({"msg": f"Recept {poruka}", "dodato": dodato}), 200
 
 # --- IZMENA RECEPTA ---
-@recipe_bp.route('/recept/<int:recipe_id>/izmeni', methods=['PUT'])
+@recipe_bp.route('/<int:recipe_id>', methods=['PUT'])
 @jwt_required()
 def izmeni_recept(recipe_id):
     user_id = int(get_jwt_identity())

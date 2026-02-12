@@ -17,7 +17,7 @@
         <div class="card-body">
           <h5 class="card-title">{{ recept.naslov }}</h5>
           <p class="card-text text-muted">
-            <i class="bi bi-clock"></i> {{ recept.vreme }} min |
+            <i class="bi bi-clock"></i> {{ recept.vreme || recept.vreme_pripreme }} min |
             <i class="bi bi-person"></i> 
             <a [routerLink]="['/autor', recept.autor_id]" class="text-decoration-none">
               {{ recept.autor }}
