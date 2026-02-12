@@ -33,11 +33,11 @@ export class AutorProfileComponent implements OnInit {
   ucitajProfilAutora(id: number): void {
     this.ucitavanje = true;
     this.autorService.getAutorProfile(id).subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.autor = data;
         this.ucitavanje = false;
       },
-      error: (err) => {
+      error: (err:any) => {
         this.greska = err.error?.msg || 'Greška pri učitavanju profila autora';
         this.ucitavanje = false;
       }

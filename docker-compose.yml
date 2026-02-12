@@ -49,7 +49,7 @@ services:
       REDIS_PORT: 6379
       JWT_SECRET_KEY: neka_tajna_rec
     volumes:
-      - ./back/uploads:/app/uploads
+      - ./Back/uploads:/app/uploads
     restart: unless-stopped
 
   frontend:
